@@ -1,0 +1,8 @@
+{
+  "name": "Bahrain Services Directory (دليل خدمات البحرين)",
+  "description": "A comprehensive directory for shops and services in the Kingdom of Bahrain, featuring categorized search, block-number filtering, and RTL support.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

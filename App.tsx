@@ -156,121 +156,57 @@ const INITIAL_CATEGORIES: Category[] = [
   { id: 'services', titleAr: 'خدمات ترفيهية وعقارات', titleEn: 'Leisure & Real Estate', icon: 'Home', subCategories: ['صالات ألعاب', 'GYM', 'سفريات', 'صالونات', 'فنادق', 'شقق', 'مكاتب', 'عقارات'] }
 ];
 
-const INITIAL_BUSINESSES: Business[] = [
-  {
-    id: '1', nameAr: 'كفتيريا النور', nameEn: 'Al Noor Cafeteria',
-    category: 'restaurants', subCategory: 'كفتيريات',
-    areaAr: 'المنامة', areaEn: 'Manama', block: '304', phone: '17220000',
-    instagram: 'alnoor_bh', googleMapsUrl: 'https://maps.google.com/?q=Manama+Block+304',
-    image: 'https://picsum.photos/seed/cafe/400/300', hasAdPage: true,
-    adPageContent: 'عرض خاص: اشترِ وجبتين واحصل على الثالثة مجاناً!',
-    createdAt: '2026-05-15', cuisine: 'Fast Food', cuisineAr: 'وجبات سريعة',
-    priceRange: '$', openTime: '06:00', closeTime: '23:30',
-    hasParking: true, hasFamilySection: false,
-    dressCodeEn: 'Casual', dressCodeAr: 'غير رسمي',
-    views: 45, ratingSum: 18, ratingCount: 4,
-    reviews: [
-      { id: 'r1', author: 'Ahmed', rating: 5, comment: 'أفضل شاورما في المنامة!', createdAt: '2026-05-20' },
-      { id: 'r2', author: 'Sarah', rating: 4, comment: 'Nice local cafeteria, quick service.', createdAt: '2026-05-22' }
-    ]
-  },
-  {
-    id: '4', nameAr: 'مطعم سيكوس الإيطالي', nameEn: "Cico's Italian Restaurant",
-    category: 'restaurants', subCategory: 'جلسات داخلية',
-    areaAr: 'الجفير', areaEn: 'Juffair', block: '324', phone: '17711111',
-    instagram: 'cicos_bh', googleMapsUrl: 'https://maps.google.com/?q=Cicos+Adliya+Bahrain',
-    image: 'https://picsum.photos/seed/italian/400/300',
-    isFeatured: true, isPriority: true, createdAt: '2025-12-01',
-    cuisine: 'Italian', cuisineAr: 'إيطالي', priceRange: '$$$',
-    openTime: '12:00', closeTime: '23:00', hasParking: true, hasFamilySection: true,
-    dressCodeEn: 'Smart Casual', dressCodeAr: 'أنيق غير رسمي',
-    views: 312, ratingSum: 23, ratingCount: 5,
-    reviews: [
-      { id: 'r3', author: 'Mark', rating: 5, comment: 'Authentic Italian taste and great ambiance.', createdAt: '2026-05-10' },
-      { id: 'r4', author: 'خليل', rating: 4, comment: 'ممتاز جداً والبيتزا رائعة.', createdAt: '2026-05-14' }
-    ]
-  },
-  {
-    id: '5', nameAr: 'لانترنز جورميه', nameEn: 'Lanterns Gourmet Lounge',
-    category: 'restaurants', subCategory: 'عائلية',
-    areaAr: 'الرفاع', areaEn: 'Riffa', block: '905', phone: '17590000',
-    instagram: 'lanterns_bh', googleMapsUrl: 'https://maps.google.com/?q=Lanterns+Riffa',
-    image: 'https://picsum.photos/seed/indian/400/300', isFeatured: true,
-    createdAt: '2026-05-20', cuisine: 'Indian', cuisineAr: 'هندي',
-    priceRange: '$$', openTime: '11:30', closeTime: '01:00',
-    hasParking: true, hasFamilySection: true,
-    dressCodeEn: 'Smart Casual', dressCodeAr: 'أنيق غير رسمي',
-    views: 420, ratingSum: 14, ratingCount: 3,
-    reviews: [{ id: 'r5', author: 'Ali', rating: 5, comment: 'The butter chicken is out of this world.', createdAt: '2026-05-22' }]
-  },
-  {
-    id: '6', nameAr: 'أروها كافيه', nameEn: 'Aroha Cafe',
-    category: 'restaurants', subCategory: 'مقاهي',
-    areaAr: 'المحرق', areaEn: 'Muharraq', block: '208', phone: '17888888',
-    instagram: 'aroha_cafe', googleMapsUrl: 'https://maps.google.com/?q=Muharraq',
-    image: 'https://picsum.photos/seed/cafe2/400/300',
-    createdAt: '2026-05-25', cuisine: 'Cafe', cuisineAr: 'مقاهي',
-    priceRange: '$$', openTime: '07:30', closeTime: '00:00',
-    hasParking: false, hasFamilySection: true,
-    dressCodeEn: 'Casual', dressCodeAr: 'غير رسمي',
-    views: 185, ratingSum: 8, ratingCount: 2, reviews: []
-  },
-  {
-    id: '2', nameAr: 'صيدلية البحرين', nameEn: 'Bahrain Pharmacy',
-    category: 'health', subCategory: 'صيدليات',
-    areaAr: 'الرفاع', areaEn: 'Riffa', block: '901', phone: '17770000',
-    googleMapsUrl: 'https://maps.google.com/?q=Riffa+Block+901',
-    image: 'https://picsum.photos/seed/health/400/300'
-  },
-  {
-    id: '3', nameAr: 'سوبرماركت العائلة', nameEn: 'Family Supermarket',
-    category: 'supermarkets', subCategory: 'سوبرماركت',
-    areaAr: 'المحرق', areaEn: 'Muharraq', block: '202', phone: '17330000',
-    instagram: 'family_market', googleMapsUrl: 'https://maps.google.com/?q=Muharraq+Block+202',
-    image: 'https://picsum.photos/seed/market/400/300', isPriority: true
-  }
+const DEMO_BUSINESS_NAMES = [
+  'كفتيريا النور',
+  'مطعم سيكوس الإيطالي',
+  'مطعم سيكو الإيطالي',
+  "Cico's Italian Restaurant",
+  'لانترنز جورميه',
+  'Lanterns Gourmet Lounge',
+  'أروها كافيه',
+  'Aroha Cafe',
+  'صيدلية البحرين',
+  'Bahrain Pharmacy',
+  'سوبرماركت العائلة',
+  'Family Supermarket',
+  'مطعم بحرين الشعبي',
+  'برادات المملكة'
 ];
 
-const INITIAL_ADS: Ad[] = [
-  { id: 'ad1', title: 'Top Banner', imageUrl: 'https://picsum.photos/seed/ad1/1200/300', mediaType: 'image', link: '#', active: true, position: 'top', heightClass: 'h-40' },
-  { id: 'ad2', title: 'Middle Ad', imageUrl: 'https://picsum.photos/seed/ad2/800/400', mediaType: 'image', link: '#', active: true, position: 'middle', heightClass: 'h-64' },
-  { id: 'ad3', title: 'Special Video', videoUrl: 'https://www.w3schools.com/html/mov_bbb.mp4', mediaType: 'video', link: '#', active: true, position: 'bottom', heightClass: 'h-60' },
-];
+const isDemoBusiness = (b: any) => {
+  if (!b) return false;
+  if (['1', '2', '3', '4', '5', '6'].includes(String(b.id)) && DEMO_BUSINESS_NAMES.some(name => b.nameAr?.includes(name) || b.nameEn?.includes(name))) {
+    return true;
+  }
+  return false;
+};
+
+const isDemoAd = (ad: any) => {
+  if (!ad) return false;
+  if (['ad1', 'ad2', 'ad3', 'ad4', 'ad5'].includes(String(ad.id)) && (ad.imageUrl?.includes('picsum.photos') || ad.videoUrl?.includes('w3schools'))) {
+    return true;
+  }
+  return false;
+};
+
+const isDemoBazaar = (bo: any) => {
+  if (!bo) return false;
+  if (['bo1', 'bo2', 'bo3'].includes(String(bo.id)) && DEMO_BUSINESS_NAMES.some(name => bo.businessName?.includes(name))) {
+    return true;
+  }
+  return false;
+};
+
+const INITIAL_BUSINESSES: Business[] = [];
+
+const INITIAL_ADS: Ad[] = [];
 
 const INITIAL_MEMBERS: User[] = [
   { id: '1', username: 'admin', password: '123', role: 'admin' },
   { id: 'u2', username: 'editor', password: 'editor123', role: 'editor' },
 ];
 
-const INITIAL_BAZAAR_OFFERS: BazaarOffer[] = [
-  {
-    id: 'bo1',
-    businessName: 'كفتيريا النور',
-    category: 'مطاعم',
-    imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&auto=format&fit=crop&q=60',
-    link: 'https://instagram.com/alnoor_bh',
-    addedBy: 'admin',
-    createdAt: '2026-07-01'
-  },
-  {
-    id: 'bo2',
-    businessName: 'صيدلية البحرين',
-    category: 'صحة',
-    imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=500&auto=format&fit=crop&q=60',
-    link: 'https://maps.google.com/?q=Riffa+Block+901',
-    addedBy: 'editor',
-    createdAt: '2026-07-02'
-  },
-  {
-    id: 'bo3',
-    businessName: 'سوبرماركت العائلة',
-    category: 'سوبرماركت',
-    imageUrl: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=60',
-    link: 'https://instagram.com/family_market',
-    addedBy: 'admin',
-    createdAt: '2026-07-03'
-  }
-];
+const INITIAL_BAZAAR_OFFERS: BazaarOffer[] = [];
 
 const INITIAL_SALES_PRODUCTS = [
   { id: 'p1', nameAr: 'إعلان مثبت أعلى الموقع', nameEn: 'Top Banner Ad', price: 120, unit: 'month' },
@@ -5922,18 +5858,10 @@ const AppContent: React.FC = () => {
   const { lang, t, setLang } = useLanguage();
   const { currentUser, setCurrentUser, members, setMembers, isAdmin } = useAuth();
 
-  // Cache busting & local storage sync on version changes
-  const storedVersion = localStorage.getItem('bh_app_version');
-  if (storedVersion !== APP_VERSION) {
-    localStorage.removeItem('bh_categories');
-    localStorage.removeItem('bh_businesses');
-    localStorage.removeItem('bh_ads');
-    localStorage.removeItem('bh_site_config');
-    localStorage.removeItem('bh_bazaar_offers');
-    localStorage.removeItem('bh_sales_products');
-    localStorage.removeItem('bh_sales_invoices');
+  // Keep app version tracked without resetting or deleting any user data
+  useEffect(() => {
     localStorage.setItem('bh_app_version', APP_VERSION);
-  }
+  }, []);
 
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
@@ -5955,7 +5883,11 @@ const AppContent: React.FC = () => {
   const [landmarks, setLandmarks] = useState<Landmark[]>(() => {
     try {
       const s = localStorage.getItem('bh_landmarks');
-      return s ? JSON.parse(s) : INITIAL_LANDMARKS;
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return INITIAL_LANDMARKS;
     } catch {
       return INITIAL_LANDMARKS;
     }
@@ -5965,25 +5897,79 @@ const AppContent: React.FC = () => {
   });
 
   const [categories, setCategories] = useState<Category[]>(() => {
-    try { const s = localStorage.getItem('bh_categories'); return s ? JSON.parse(s) : INITIAL_CATEGORIES; } catch { return INITIAL_CATEGORIES; }
+    try {
+      const s = localStorage.getItem('bh_categories');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return INITIAL_CATEGORIES;
+    } catch {
+      return INITIAL_CATEGORIES;
+    }
   });
   const [businesses, setBusinesses] = useState<Business[]>(() => {
-    try { const s = localStorage.getItem('bh_businesses'); return s ? JSON.parse(s) : INITIAL_BUSINESSES; } catch { return INITIAL_BUSINESSES; }
+    try {
+      const s = localStorage.getItem('bh_businesses');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter(b => !isDemoBusiness(b));
+          return cleaned;
+        }
+      }
+      return INITIAL_BUSINESSES;
+    } catch {
+      return INITIAL_BUSINESSES;
+    }
   });
   const [ads, setAds] = useState<Ad[]>(() => {
-    try { const s = localStorage.getItem('bh_ads'); return s ? JSON.parse(s) : INITIAL_ADS; } catch { return INITIAL_ADS; }
+    try {
+      const s = localStorage.getItem('bh_ads');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter(a => !isDemoAd(a));
+          return cleaned;
+        }
+      }
+      return INITIAL_ADS;
+    } catch {
+      return INITIAL_ADS;
+    }
   });
   const [siteConfig, setSiteConfig] = useState<SiteConfig>(() => {
+    const defaultConfig: SiteConfig = {
+      titleAr: 'دليل البحرين',
+      titleEn: 'Bahrain Directory',
+      logoUrl: '',
+      aboutUsAr: '',
+      aboutUsEn: '',
+      maxAdsTop: 1,
+      maxAdsMiddle: 1,
+      maxAdsBottom: 1,
+      maxAdImageSizeMB: 10,
+      maxAdVideoSizeMB: 50,
+      showVisitorCount: true,
+    };
     try {
       const s = localStorage.getItem('bh_site_config');
-      return s ? { aboutUsAr: '', aboutUsEn: '', maxAdsTop: 1, maxAdsMiddle: 1, maxAdsBottom: 1, maxAdImageSizeMB: 10, maxAdVideoSizeMB: 50, ...JSON.parse(s) }
-        : { titleAr: 'دليل البحرين', titleEn: 'Bahrain Directory', logoUrl: '', aboutUsAr: '', aboutUsEn: '', maxAdsTop: 1, maxAdsMiddle: 1, maxAdsBottom: 1, maxAdImageSizeMB: 10, maxAdVideoSizeMB: 50 };
-    } catch { return { titleAr: 'دليل البحرين', titleEn: 'Bahrain Directory', logoUrl: '', maxAdsTop: 1, maxAdsMiddle: 1, maxAdsBottom: 1, maxAdImageSizeMB: 10, maxAdVideoSizeMB: 50 }; }
+      return s ? { ...defaultConfig, ...JSON.parse(s) } : defaultConfig;
+    } catch {
+      return defaultConfig;
+    }
   });
   const [bazaarOffers, setBazaarOffers] = useState<BazaarOffer[]>(() => {
     try {
       const s = localStorage.getItem('bh_bazaar_offers');
-      return s ? JSON.parse(s) : INITIAL_BAZAAR_OFFERS;
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed)) {
+          const cleaned = parsed.filter(bo => !isDemoBazaar(bo));
+          return cleaned;
+        }
+      }
+      return INITIAL_BAZAAR_OFFERS;
     } catch {
       return INITIAL_BAZAAR_OFFERS;
     }
@@ -5991,7 +5977,11 @@ const AppContent: React.FC = () => {
   const [salesProducts, setSalesProducts] = useState<any[]>(() => {
     try {
       const s = localStorage.getItem('bh_sales_products');
-      return s ? JSON.parse(s) : INITIAL_SALES_PRODUCTS;
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return INITIAL_SALES_PRODUCTS;
     } catch {
       return INITIAL_SALES_PRODUCTS;
     }
@@ -5999,7 +5989,11 @@ const AppContent: React.FC = () => {
   const [salesInvoices, setSalesInvoices] = useState<any[]>(() => {
     try {
       const s = localStorage.getItem('bh_sales_invoices');
-      return s ? JSON.parse(s) : INITIAL_SALES_INVOICES;
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return INITIAL_SALES_INVOICES;
     } catch {
       return INITIAL_SALES_INVOICES;
     }
@@ -6060,12 +6054,22 @@ const AppContent: React.FC = () => {
       }
     };
 
-    // Seed helper: seed a collection with initial data if empty, then mark loaded
-    const seedIfEmpty = async (collName: string, initial: any[], setter: (d: any[]) => void) => {
+    // Seed helper: seed a collection ONLY if empty on the server AND using current local state/storage first
+    const seedIfEmpty = async (collName: string, initialFallback: any[], localKey: string) => {
       try {
         const existing = await fetchCollection<any>(collName, []);
         if (existing.length === 0) {
-          await saveCollection(collName, initial);
+          let dataToSeed = initialFallback;
+          try {
+            const ls = localStorage.getItem(localKey);
+            if (ls) {
+              const parsed = JSON.parse(ls);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                dataToSeed = parsed;
+              }
+            }
+          } catch {}
+          await saveCollection(collName, dataToSeed);
         }
       } catch (e) {
         console.warn(`⚠️ Seed error for ${collName}:`, e);
@@ -6073,27 +6077,34 @@ const AppContent: React.FC = () => {
     };
 
     // 1. Categories – real-time
-    seedIfEmpty('categories', INITIAL_CATEGORIES, setCategories).then(() => {
+    seedIfEmpty('categories', INITIAL_CATEGORIES, 'bh_categories').then(() => {
       const unsub = subscribeToCollection<Category>('categories', (data) => {
-        if (data.length > 0) setCategories(data);
+        if (data.length > 0) {
+          setCategories(data);
+          localStorage.setItem('bh_categories', JSON.stringify(data));
+        }
         markLoaded();
       });
       unsubscribers.push(unsub);
     });
 
     // 2. Businesses – real-time
-    seedIfEmpty('businesses', INITIAL_BUSINESSES, setBusinesses).then(() => {
+    seedIfEmpty('businesses', INITIAL_BUSINESSES, 'bh_businesses').then(() => {
       const unsub = subscribeToCollection<Business>('businesses', (data) => {
-        if (data.length > 0) setBusinesses(data);
+        const cleaned = data.filter(b => !isDemoBusiness(b));
+        setBusinesses(cleaned);
+        localStorage.setItem('bh_businesses', JSON.stringify(cleaned));
         markLoaded();
       });
       unsubscribers.push(unsub);
     });
 
     // 3. Ads – real-time
-    seedIfEmpty('ads', INITIAL_ADS, setAds).then(() => {
+    seedIfEmpty('ads', INITIAL_ADS, 'bh_ads').then(() => {
       const unsub = subscribeToCollection<Ad>('ads', (data) => {
-        if (data.length > 0) setAds(data);
+        const cleaned = data.filter(a => !isDemoAd(a));
+        setAds(cleaned);
+        localStorage.setItem('bh_ads', JSON.stringify(cleaned));
         markLoaded();
       });
       unsubscribers.push(unsub);
@@ -6110,56 +6121,76 @@ const AppContent: React.FC = () => {
       const unsub = subscribeToCollection<any>('siteConfig', (data) => {
         const fbConfig = data.find(c => c.id === 'config');
         if (fbConfig) {
-          setSiteConfig(prev => ({ titleAr: 'دليل البحرين', titleEn: 'Bahrain Directory', logoUrl: '', aboutUsAr: '', aboutUsEn: '', maxAdsTop: 1, maxAdsMiddle: 1, maxAdsBottom: 1, ...prev, ...fbConfig }));
+          setSiteConfig(prev => {
+            const merged = { ...prev, ...fbConfig };
+            localStorage.setItem('bh_site_config', JSON.stringify(merged));
+            return merged;
+          });
         }
         const fbSheet = data.find(c => c.id === 'sheetUrl') as any;
-        if (fbSheet?.url) setSheetUrl(fbSheet.url);
+        if (fbSheet?.url) {
+          setSheetUrl(fbSheet.url);
+          localStorage.setItem('bh_sheet_url', fbSheet.url);
+        }
         markLoaded();
       });
       unsubscribers.push(unsub);
     })();
 
     // 5. Bazaar offers – real-time
-    seedIfEmpty('bazaarOffers', INITIAL_BAZAAR_OFFERS, setBazaarOffers).then(() => {
+    seedIfEmpty('bazaarOffers', INITIAL_BAZAAR_OFFERS, 'bh_bazaar_offers').then(() => {
       const unsub = subscribeToCollection<BazaarOffer>('bazaarOffers', (data) => {
-        if (data.length > 0) setBazaarOffers(data);
+        const cleaned = data.filter(bo => !isDemoBazaar(bo));
+        setBazaarOffers(cleaned);
+        localStorage.setItem('bh_bazaar_offers', JSON.stringify(cleaned));
         markLoaded();
       });
       unsubscribers.push(unsub);
     });
 
     // 6. Sales products – real-time
-    seedIfEmpty('salesProducts', INITIAL_SALES_PRODUCTS, setSalesProducts).then(() => {
+    seedIfEmpty('salesProducts', INITIAL_SALES_PRODUCTS, 'bh_sales_products').then(() => {
       const unsub = subscribeToCollection<any>('salesProducts', (data) => {
-        if (data.length > 0) setSalesProducts(data);
+        if (data.length > 0) {
+          setSalesProducts(data);
+          localStorage.setItem('bh_sales_products', JSON.stringify(data));
+        }
         markLoaded();
       });
       unsubscribers.push(unsub);
     });
 
     // 7. Sales invoices – real-time
-    seedIfEmpty('salesInvoices', INITIAL_SALES_INVOICES, setSalesInvoices).then(() => {
+    seedIfEmpty('salesInvoices', INITIAL_SALES_INVOICES, 'bh_sales_invoices').then(() => {
       const unsub = subscribeToCollection<any>('salesInvoices', (data) => {
-        if (data.length > 0) setSalesInvoices(data);
+        if (data.length > 0) {
+          setSalesInvoices(data);
+          localStorage.setItem('bh_sales_invoices', JSON.stringify(data));
+        }
         markLoaded();
       });
       unsubscribers.push(unsub);
     });
 
     // 8. Members – real-time
-    seedIfEmpty('members', members, setMembers).then(() => {
+    seedIfEmpty('members', members, 'bh_members').then(() => {
       const unsub = subscribeToCollection<any>('members', (data) => {
-        if (data.length > 0) setMembers(data);
+        if (data.length > 0) {
+          setMembers(data);
+          localStorage.setItem('bh_members', JSON.stringify(data));
+        }
         markLoaded();
       });
       unsubscribers.push(unsub);
     });
 
     // 9. Deleted businesses – real-time
-    seedIfEmpty('deletedBusinesses', deletedBusinesses, setDeletedBusinesses).then(() => {
+    seedIfEmpty('deletedBusinesses', deletedBusinesses, 'bh_deleted_businesses').then(() => {
       const unsub = subscribeToCollection<DeletedBusiness>('deletedBusinesses', (data) => {
         if (data) {
-          setDeletedBusinesses(data.filter(item => isWithin24Hours(item.deletedAt)));
+          const valid = data.filter(item => isWithin24Hours(item.deletedAt));
+          setDeletedBusinesses(valid);
+          localStorage.setItem('bh_deleted_businesses', JSON.stringify(valid));
         }
         markLoaded();
       });
@@ -6167,9 +6198,12 @@ const AppContent: React.FC = () => {
     });
 
     // 10. Landmarks (Taalou Honi) – real-time
-    seedIfEmpty('landmarks', INITIAL_LANDMARKS, setLandmarks).then(() => {
+    seedIfEmpty('landmarks', INITIAL_LANDMARKS, 'bh_landmarks').then(() => {
       const unsub = subscribeToCollection<Landmark>('landmarks', (data) => {
-        if (data.length > 0) setLandmarks(data);
+        if (data.length > 0) {
+          setLandmarks(data);
+          localStorage.setItem('bh_landmarks', JSON.stringify(data));
+        }
         markLoaded();
       });
       unsubscribers.push(unsub);

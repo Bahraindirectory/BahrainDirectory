@@ -128,29 +128,44 @@ export const saveCollection = async (collectionName: string, items: any[]): Prom
   if (!db) return false;
   try {
     const colRef = collection(db, collectionName);
-    const existingSnap = await withTimeout(getDocs(colRef), 3500);
+    const existingSnap = await withTimeout(getDocs(colRef), 4000);
     const existingIds = new Set(existingSnap.docs.map(d => d.id));
     const newIds = new Set(items.map(item => item.id).filter(Boolean));
 
-    const batch = writeBatch(db);
+    // Chunking helper to respect Firestore 500 ops per batch limit
+    const ops: Array<{ type: 'delete' | 'set'; id: string; data?: any }> = [];
 
     // Delete documents from Firestore that are no longer in items array
     existingIds.forEach((existingId) => {
       if (!newIds.has(existingId)) {
-        const docRef = doc(db, collectionName, existingId);
-        batch.delete(docRef);
+        ops.push({ type: 'delete', id: existingId });
       }
     });
 
     // Add or update items
     items.forEach((item) => {
       if (!item.id) return;
-      const docRef = doc(db, collectionName, item.id);
-      const cleanData = JSON.parse(JSON.stringify(item));
-      batch.set(docRef, cleanData, { merge: true });
+      ops.push({ type: 'set', id: item.id, data: JSON.parse(JSON.stringify(item)) });
     });
 
-    await withTimeout(batch.commit(), 5000);
+    if (ops.length === 0) return true;
+
+    // Process in batches of 350
+    const CHUNK_SIZE = 350;
+    for (let i = 0; i < ops.length; i += CHUNK_SIZE) {
+      const chunk = ops.slice(i, i + CHUNK_SIZE);
+      const batch = writeBatch(db);
+      for (const op of chunk) {
+        const docRef = doc(db, collectionName, op.id);
+        if (op.type === 'delete') {
+          batch.delete(docRef);
+        } else if (op.type === 'set' && op.data) {
+          batch.set(docRef, op.data, { merge: true });
+        }
+      }
+      await withTimeout(batch.commit(), 6000);
+    }
+
     return true;
   } catch (error) {
     console.warn(`⚠️ Error batch saving collection ${collectionName}:`, error);

@@ -19,6 +19,14 @@ import { convertFileToWebP, optimizeImageUrl } from './src/lib/imageOptimizer';
 
 const APP_VERSION = '1.4.3';
 
+const safeLocalStorageSet = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (e) {
+    console.warn(`[Storage] Failed to save key "${key}" to localStorage:`, e);
+  }
+};
+
 // ─── TYPES ──────────────────────────────────────────────────────────────────
 
 type Language = 'ar' | 'en';
@@ -913,10 +921,20 @@ function Results({
   uniqueAreasInPool
 }: any) {
   const { lang, t } = useLanguage();
-  const cat = categories.find((c: Category) => c.id === selectedCategory);
+  const [visibleCount, setVisibleCount] = useState(24);
 
+  // Reset visible count when any filter changes
+  useEffect(() => {
+    setVisibleCount(24);
+  }, [selectedCategory, filterCategory, filterSubCategory, filterCuisine, filterArea, filterPrice, isOpenNow, filteredBusinesses.length]);
+
+  const cat = categories.find((c: Category) => c.id === selectedCategory);
   const activeCategory = selectedCategory || filterCategory;
   const isRestaurant = activeCategory === 'restaurants' || (uniqueCategoriesInPool.length === 1 && uniqueCategoriesInPool[0].id === 'restaurants');
+
+  const displayedBusinesses = useMemo(() => {
+    return filteredBusinesses.slice(0, visibleCount);
+  }, [filteredBusinesses, visibleCount]);
 
   return (
     <div className="space-y-4 animate-fadeIn">
@@ -1023,13 +1041,26 @@ function Results({
       {filteredBusinesses.length === 0
         ? <div className="text-center py-16 text-gray-400 dark:text-slate-500">{t.noResults}</div>
         : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredBusinesses.map((b: Business) => (
-              <BusinessCard key={b.id} b={b} lang={lang} t={t}
-                isFav={favorites.includes(b.id)}
-                onToggleFav={() => toggleFavorite(b.id)}
-                onClick={() => onSelectBusiness(b)} />
-            ))}
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {displayedBusinesses.map((b: Business) => (
+                <BusinessCard key={b.id} b={b} lang={lang} t={t}
+                  isFav={favorites.includes(b.id)}
+                  onToggleFav={() => toggleFavorite(b.id)}
+                  onClick={() => onSelectBusiness(b)} />
+              ))}
+            </div>
+
+            {visibleCount < filteredBusinesses.length && (
+              <div className="flex justify-center pt-2">
+                <button
+                  onClick={() => setVisibleCount(prev => prev + 24)}
+                  className="px-6 py-2.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-red-600 dark:text-red-400 font-bold text-xs md:text-sm rounded-xl border border-red-200 dark:border-red-900/50 shadow-sm transition-all flex items-center gap-2"
+                >
+                  <span>{lang === 'ar' ? `عرض المزيد من النتائج (${filteredBusinesses.length - visibleCount} متبقية)` : `Load More (${filteredBusinesses.length - visibleCount} remaining)`}</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
     </div>
@@ -2647,6 +2678,12 @@ function AdminDashboard({ lang, t, categories, setCategories, businesses, setBus
   const [searchBizQuery, setSearchBizQuery] = useState('');
   const [selectedBizCategory, setSelectedBizCategory] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'single' | 'bulk'; id?: string } | null>(null);
+  const [adminPage, setAdminPage] = useState(1);
+  const ADMIN_PAGE_SIZE = 30;
+
+  useEffect(() => {
+    setAdminPage(1);
+  }, [searchBizQuery, selectedBizCategory]);
 
   const adminFilteredBusinesses = useMemo(() => {
     return businesses.filter((b: Business) => {
@@ -2668,6 +2705,12 @@ function AdminDashboard({ lang, t, categories, setCategories, businesses, setBus
       return matchCategory && matchSearch;
     });
   }, [businesses, selectedBizCategory, searchBizQuery, currentUser]);
+
+  const totalAdminPages = Math.ceil(adminFilteredBusinesses.length / ADMIN_PAGE_SIZE) || 1;
+  const paginatedAdminBusinesses = useMemo(() => {
+    const start = (adminPage - 1) * ADMIN_PAGE_SIZE;
+    return adminFilteredBusinesses.slice(start, start + ADMIN_PAGE_SIZE);
+  }, [adminFilteredBusinesses, adminPage]);
 
   const isLinkedEditor = currentUser?.role === 'editor' && !!currentUser?.businessId;
 
@@ -2923,7 +2966,7 @@ function AdminDashboard({ lang, t, categories, setCategories, businesses, setBus
                     </td>
                   </tr>
                 ) : (
-                  adminFilteredBusinesses.map((b: Business) => (
+                  paginatedAdminBusinesses.map((b: Business) => (
                     <tr key={b.id} className="border-t border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700/50">
                       {!isLinkedEditor && (
                         <td className="p-3"><input type="checkbox" checked={selected.includes(b.id)} onChange={e => setSelected(p => e.target.checked ? [...p, b.id] : p.filter(id => id !== b.id))} /></td>
@@ -2957,6 +3000,31 @@ function AdminDashboard({ lang, t, categories, setCategories, businesses, setBus
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalAdminPages > 1 && (
+            <div className="flex items-center justify-between px-2 py-3 bg-white dark:bg-slate-800 rounded-2xl border border-gray-100 dark:border-slate-700 text-xs">
+              <span className="text-gray-500 dark:text-slate-400 font-medium">
+                {lang === 'ar' ? `الصفحة ${adminPage} من ${totalAdminPages}` : `Page ${adminPage} of ${totalAdminPages}`}
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setAdminPage(p => Math.max(1, p - 1))}
+                  disabled={adminPage === 1}
+                  className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-600 font-semibold disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  {lang === 'ar' ? 'السابق' : 'Prev'}
+                </button>
+                <button
+                  onClick={() => setAdminPage(p => Math.min(totalAdminPages, p + 1))}
+                  disabled={adminPage === totalAdminPages}
+                  className="px-3 py-1.5 rounded-xl border border-gray-200 dark:border-slate-600 font-semibold disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                  {lang === 'ar' ? 'التالي' : 'Next'}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -5964,6 +6032,8 @@ const AppContent: React.FC = () => {
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [isFirebaseLoading, setIsFirebaseLoading] = useState(false);
   const loadedFromFirestore = useRef(false);
+  const lastSyncedHash = useRef<Record<string, string>>({});
+  const saveTimeoutRef = useRef<Record<string, any>>({});
 
   const [view, setView] = useState<'home' | 'results' | 'admin' | 'business-details' | 'favorites' | 'bazaar' | 'contact' | 'landmarks'>('home');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -6178,8 +6248,10 @@ const AppContent: React.FC = () => {
     seedIfEmpty('categories', INITIAL_CATEGORIES, 'bh_categories').then(() => {
       const unsub = subscribeToCollection<Category>('categories', (data) => {
         if (data.length > 0) {
+          const json = JSON.stringify(data);
+          lastSyncedHash.current['categories'] = json;
           setCategories(data);
-          localStorage.setItem('bh_categories', JSON.stringify(data));
+          safeLocalStorageSet('bh_categories', json);
         }
         markLoaded();
       });
@@ -6190,8 +6262,10 @@ const AppContent: React.FC = () => {
     seedIfEmpty('businesses', INITIAL_BUSINESSES, 'bh_businesses').then(() => {
       const unsub = subscribeToCollection<Business>('businesses', (data) => {
         const cleaned = data.filter(b => !isDemoBusiness(b));
+        const json = JSON.stringify(cleaned);
+        lastSyncedHash.current['businesses'] = json;
         setBusinesses(cleaned);
-        localStorage.setItem('bh_businesses', JSON.stringify(cleaned));
+        safeLocalStorageSet('bh_businesses', json);
         markLoaded();
       });
       unsubscribers.push(unsub);
@@ -6201,8 +6275,10 @@ const AppContent: React.FC = () => {
     seedIfEmpty('ads', INITIAL_ADS, 'bh_ads').then(() => {
       const unsub = subscribeToCollection<Ad>('ads', (data) => {
         const cleaned = data.filter(a => !isDemoAd(a));
+        const json = JSON.stringify(cleaned);
+        lastSyncedHash.current['ads'] = json;
         setAds(cleaned);
-        localStorage.setItem('bh_ads', JSON.stringify(cleaned));
+        safeLocalStorageSet('bh_ads', json);
         markLoaded();
       });
       unsubscribers.push(unsub);
@@ -6221,14 +6297,17 @@ const AppContent: React.FC = () => {
         if (fbConfig) {
           setSiteConfig(prev => {
             const merged = { ...prev, ...fbConfig };
-            localStorage.setItem('bh_site_config', JSON.stringify(merged));
+            const json = JSON.stringify(merged);
+            lastSyncedHash.current['siteConfig'] = json;
+            safeLocalStorageSet('bh_site_config', json);
             return merged;
           });
         }
         const fbSheet = data.find(c => c.id === 'sheetUrl') as any;
         if (fbSheet?.url) {
+          lastSyncedHash.current['sheetUrl'] = fbSheet.url;
           setSheetUrl(fbSheet.url);
-          localStorage.setItem('bh_sheet_url', fbSheet.url);
+          safeLocalStorageSet('bh_sheet_url', fbSheet.url);
         }
         markLoaded();
       });
@@ -6239,8 +6318,10 @@ const AppContent: React.FC = () => {
     seedIfEmpty('bazaarOffers', INITIAL_BAZAAR_OFFERS, 'bh_bazaar_offers').then(() => {
       const unsub = subscribeToCollection<BazaarOffer>('bazaarOffers', (data) => {
         const cleaned = data.filter(bo => !isDemoBazaar(bo));
+        const json = JSON.stringify(cleaned);
+        lastSyncedHash.current['bazaarOffers'] = json;
         setBazaarOffers(cleaned);
-        localStorage.setItem('bh_bazaar_offers', JSON.stringify(cleaned));
+        safeLocalStorageSet('bh_bazaar_offers', json);
         markLoaded();
       });
       unsubscribers.push(unsub);
@@ -6250,8 +6331,10 @@ const AppContent: React.FC = () => {
     seedIfEmpty('salesProducts', INITIAL_SALES_PRODUCTS, 'bh_sales_products').then(() => {
       const unsub = subscribeToCollection<any>('salesProducts', (data) => {
         if (data.length > 0) {
+          const json = JSON.stringify(data);
+          lastSyncedHash.current['salesProducts'] = json;
           setSalesProducts(data);
-          localStorage.setItem('bh_sales_products', JSON.stringify(data));
+          safeLocalStorageSet('bh_sales_products', json);
         }
         markLoaded();
       });
@@ -6262,8 +6345,10 @@ const AppContent: React.FC = () => {
     seedIfEmpty('salesInvoices', INITIAL_SALES_INVOICES, 'bh_sales_invoices').then(() => {
       const unsub = subscribeToCollection<any>('salesInvoices', (data) => {
         if (data.length > 0) {
+          const json = JSON.stringify(data);
+          lastSyncedHash.current['salesInvoices'] = json;
           setSalesInvoices(data);
-          localStorage.setItem('bh_sales_invoices', JSON.stringify(data));
+          safeLocalStorageSet('bh_sales_invoices', json);
         }
         markLoaded();
       });
@@ -6274,8 +6359,10 @@ const AppContent: React.FC = () => {
     seedIfEmpty('members', members, 'bh_members').then(() => {
       const unsub = subscribeToCollection<any>('members', (data) => {
         if (data.length > 0) {
+          const json = JSON.stringify(data);
+          lastSyncedHash.current['members'] = json;
           setMembers(data);
-          localStorage.setItem('bh_members', JSON.stringify(data));
+          safeLocalStorageSet('bh_members', json);
         }
         markLoaded();
       });
@@ -6287,8 +6374,10 @@ const AppContent: React.FC = () => {
       const unsub = subscribeToCollection<DeletedBusiness>('deletedBusinesses', (data) => {
         if (data) {
           const valid = data.filter(item => isWithin24Hours(item.deletedAt));
+          const json = JSON.stringify(valid);
+          lastSyncedHash.current['deletedBusinesses'] = json;
           setDeletedBusinesses(valid);
-          localStorage.setItem('bh_deleted_businesses', JSON.stringify(valid));
+          safeLocalStorageSet('bh_deleted_businesses', json);
         }
         markLoaded();
       });
@@ -6299,8 +6388,10 @@ const AppContent: React.FC = () => {
     seedIfEmpty('landmarks', INITIAL_LANDMARKS, 'bh_landmarks').then(() => {
       const unsub = subscribeToCollection<Landmark>('landmarks', (data) => {
         if (data.length > 0) {
+          const json = JSON.stringify(data);
+          lastSyncedHash.current['landmarks'] = json;
           setLandmarks(data);
-          localStorage.setItem('bh_landmarks', JSON.stringify(data));
+          safeLocalStorageSet('bh_landmarks', json);
         }
         markLoaded();
       });
@@ -6311,91 +6402,89 @@ const AppContent: React.FC = () => {
     return () => { unsubscribers.forEach(fn => fn()); };
   }, []);
 
-  // ── Local Storage + Firebase Write Effects ────────────────────────────────
-  // These sync writes back to Firestore whenever state changes (no isAdmin gate –
-  // the real-time listeners above already provide the read path for all clients).
-  useEffect(() => {
-    localStorage.setItem('bh_categories', JSON.stringify(categories));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('categories', categories);
+  // ── Local Storage + Firebase Safe Debounced Sync ───────────────────────────
+  const debouncedSync = useCallback((collName: string, data: any, isDoc = false, docId = 'config') => {
+    if (!isDataLoaded || !isFirebaseEnabled() || !loadedFromFirestore.current) return;
+    const str = typeof data === 'string' ? data : JSON.stringify(data);
+    // If state matches what came from Firestore, DO NOT echo it back!
+    if (lastSyncedHash.current[collName] === str) {
+      return;
     }
-  }, [categories, isDataLoaded]);
+    lastSyncedHash.current[collName] = str;
+
+    if (saveTimeoutRef.current[collName]) {
+      clearTimeout(saveTimeoutRef.current[collName]);
+    }
+    saveTimeoutRef.current[collName] = setTimeout(() => {
+      if (isDoc) {
+        saveDocument(collName, docId, data);
+      } else {
+        saveCollection(collName, data);
+      }
+    }, 600);
+  }, [isDataLoaded]);
 
   useEffect(() => {
-    localStorage.setItem('bh_businesses', JSON.stringify(businesses));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('businesses', businesses);
-    }
-  }, [businesses, isDataLoaded]);
+    safeLocalStorageSet('bh_categories', JSON.stringify(categories));
+    debouncedSync('categories', categories);
+  }, [categories, debouncedSync]);
 
   useEffect(() => {
-    localStorage.setItem('bh_deleted_businesses', JSON.stringify(deletedBusinesses));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('deletedBusinesses', deletedBusinesses);
-    }
-  }, [deletedBusinesses, isDataLoaded]);
+    safeLocalStorageSet('bh_businesses', JSON.stringify(businesses));
+    debouncedSync('businesses', businesses);
+  }, [businesses, debouncedSync]);
 
   useEffect(() => {
-    localStorage.setItem('bh_ads', JSON.stringify(ads));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('ads', ads);
-    }
-  }, [ads, isDataLoaded]);
+    safeLocalStorageSet('bh_deleted_businesses', JSON.stringify(deletedBusinesses));
+    debouncedSync('deletedBusinesses', deletedBusinesses);
+  }, [deletedBusinesses, debouncedSync]);
 
   useEffect(() => {
-    localStorage.setItem('bh_site_config', JSON.stringify(siteConfig));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveDocument('siteConfig', 'config', siteConfig);
-    }
-  }, [siteConfig, isDataLoaded]);
+    safeLocalStorageSet('bh_ads', JSON.stringify(ads));
+    debouncedSync('ads', ads);
+  }, [ads, debouncedSync]);
 
   useEffect(() => {
-    localStorage.setItem('bh_sheet_url', sheetUrl);
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveDocument('siteConfig', 'sheetUrl', { url: sheetUrl });
-    }
-  }, [sheetUrl, isDataLoaded]);
-
-  useEffect(() => { localStorage.setItem('bh_favorites', JSON.stringify(favorites)); }, [favorites]);
+    safeLocalStorageSet('bh_site_config', JSON.stringify(siteConfig));
+    debouncedSync('siteConfig', siteConfig, true, 'config');
+  }, [siteConfig, debouncedSync]);
 
   useEffect(() => {
-    localStorage.setItem('bh_bazaar_offers', JSON.stringify(bazaarOffers));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('bazaarOffers', bazaarOffers);
-    }
-  }, [bazaarOffers, isDataLoaded]);
+    safeLocalStorageSet('bh_sheet_url', sheetUrl);
+    debouncedSync('sheetUrl', { url: sheetUrl }, true, 'sheetUrl');
+  }, [sheetUrl, debouncedSync]);
+
+  useEffect(() => { safeLocalStorageSet('bh_favorites', JSON.stringify(favorites)); }, [favorites]);
 
   useEffect(() => {
-    localStorage.setItem('bh_sales_products', JSON.stringify(salesProducts));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('salesProducts', salesProducts);
-    }
-  }, [salesProducts, isDataLoaded]);
+    safeLocalStorageSet('bh_bazaar_offers', JSON.stringify(bazaarOffers));
+    debouncedSync('bazaarOffers', bazaarOffers);
+  }, [bazaarOffers, debouncedSync]);
 
   useEffect(() => {
-    localStorage.setItem('bh_sales_invoices', JSON.stringify(salesInvoices));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('salesInvoices', salesInvoices);
-    }
-  }, [salesInvoices, isDataLoaded]);
+    safeLocalStorageSet('bh_sales_products', JSON.stringify(salesProducts));
+    debouncedSync('salesProducts', salesProducts);
+  }, [salesProducts, debouncedSync]);
 
   useEffect(() => {
-    localStorage.setItem('bh_landmarks', JSON.stringify(landmarks));
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('landmarks', landmarks);
-    }
-  }, [landmarks, isDataLoaded]);
+    safeLocalStorageSet('bh_sales_invoices', JSON.stringify(salesInvoices));
+    debouncedSync('salesInvoices', salesInvoices);
+  }, [salesInvoices, debouncedSync]);
 
   useEffect(() => {
-    if (isDataLoaded && isFirebaseEnabled() && loadedFromFirestore.current) {
-      saveCollection('members', members);
-    }
-  }, [members, isDataLoaded]);
+    safeLocalStorageSet('bh_landmarks', JSON.stringify(landmarks));
+    debouncedSync('landmarks', landmarks);
+  }, [landmarks, debouncedSync]);
+
+  useEffect(() => {
+    safeLocalStorageSet('bh_members', JSON.stringify(members));
+    debouncedSync('members', members);
+  }, [members, debouncedSync]);
 
   useEffect(() => {
     const c = localStorage.getItem('visitorCount');
     const newVal = c ? (parseInt(c) + 1) : 1;
-    localStorage.setItem('visitorCount', newVal.toString());
+    safeLocalStorageSet('visitorCount', newVal.toString());
     setVisitorCount(newVal);
   }, []);
 

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import {
   Compass, MapPin, Calendar, Clock, DollarSign, Heart, Share2, Search,
-  Plus, Edit, Trash2, X, ExternalLink, Sparkles, Volume2, VolumeX,
-  MessageCircle, Camera, Award, ChevronLeft, ChevronRight, Check, Info, Phone, Instagram
+  Plus, Edit, Trash2, X, ExternalLink, Sparkles,
+  MessageCircle, Camera, Award, ChevronLeft, ChevronRight, Check, Info, Phone, Instagram, Upload
 } from 'lucide-react';
+import { convertFileToWebP, optimizeImageUrl } from '../lib/imageOptimizer';
 
 export interface Landmark {
   id: string;
@@ -41,7 +42,7 @@ export const INITIAL_LANDMARKS: Landmark[] = [
     descriptionAr: 'موقع أثري مدرج على قائمة التراث العالمي لليونسكو. يمثل عاصمة دلمون القديمة ويحتوي على طبقات أثرية تعود لـ 2300 سنة قبل الميلاد مع إطلالة ساحرة ومتحف مائي فاخر ومقاهي تطل على البحر.',
     descriptionEn: 'A UNESCO World Heritage Site representing the ancient capital of Dilmun. It features archaeological layers dating back to 2300 BC with a coastal view, museum, and seaside cafes.',
     historicalOverview: 'شُيدت القلعة الرئيسية في القرن السادس عشر الإسباني/البرتغالي فوق تل أثري مرتفع يضم بقايا مدن دلمونية وآشورية وإسلامية متتابعة، لتشهد على عظمة التجارة البحرية التاريخية للبحرين.',
-    image: 'https://images.unsplash.com/photo-1578895210405-907db486c111?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1578895210405-907db486c111?q=80&w=1200&auto=format&fit=crop&fm=webp',
     googleMapsUrl: 'https://maps.google.com/?q=Qalat+al+Bahrain',
     workHours: 'الموقع: يومياً من 8 صباحاً حتى 8 مساءً | المتحف: 8 ص - 8 م (مغلق الاثنين)',
     entryFee: 'الموقع مجاني | المتحف: 2.200 د.ب',
@@ -63,7 +64,7 @@ export const INITIAL_LANDMARKS: Landmark[] = [
     descriptionAr: 'المدخل التاريخي لسوق المنامة القديم ومقر أول مكتب حكومي رئيسي. يفيض بالسحر التراثي ويضم أزقة التوابل والعطور والبهارات والذهب والمقاهي العريقة كـ "مقهى حاجي".',
     descriptionEn: 'The historic gateway to Manama Souq. Packed with traditional charm, spice shops, perfumes, gold, handicrafts, and historic cafes like Hajis Cafe.',
     historicalOverview: 'صممه المستشار السير تشارلز بيلغريف عام 1949 وشهد إعادة تجديد تعيد له حس الطراز المعماري الخليجي الأصيل ليكون ملتقى الثقافات والتجار.',
-    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1548013146-72479768bada?q=80&w=1200&auto=format&fit=crop&fm=webp',
     googleMapsUrl: 'https://maps.google.com/?q=Bab+Al+Bahrain',
     workHours: 'يومياً: 9 صباحاً - 1 ظهراً | 4 عصراً - 10 مساءً',
     entryFee: 'مجاني',
@@ -85,7 +86,7 @@ export const INITIAL_LANDMARKS: Landmark[] = [
     descriptionAr: 'أحد أكبر وأقدم المتاحف في منطقة الخليج العربي. يجسد تاريخ وحضارة البحرين عبر 6000 عام في صالات عرض فخمة تضم قاعات دلمون والغوص والعادات والتقاليد.',
     descriptionEn: 'One of the largest and oldest museums in the Arabian Gulf, showcasing 6,000 years of Bahraini history, Dilmun civilization, pearling heritage, and local traditions.',
     historicalOverview: 'افتتحه المغفور له الشيخ عيسى بن سلمان آل خليفة عام 1988 بكسوة رخامية تراثية بيضاء على ضفاف البحر ليكون واجهة المعرفة والآثار لمملكة البحرين.',
-    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=1200&auto=format&fit=crop&fm=webp',
     googleMapsUrl: 'https://maps.google.com/?q=Bahrain+National+Museum',
     workHours: 'يومياً: 8 صباحاً - 8 مساءً (مغلق الثلاثاء)',
     entryFee: '1.100 د.ب للمواطنين والمقيمين',
@@ -107,7 +108,7 @@ export const INITIAL_LANDMARKS: Landmark[] = [
     descriptionAr: 'أعجوبة طبيعية ساحرة تقف بشموخ وسط الصحراء القاحلة منذ أكثر من 400 عام دون أي مصدر مائي معروف. رمز للصمود ومقصد سياحي يلتقط فيه الزوار أروع الصور.',
     descriptionEn: 'A magical natural wonder standing in the desert for over 400 years with no apparent water source. A symbol of resilience and a famous photo spot.',
     historicalOverview: 'تعود شجرة الغاف الكبيرة لعام 1582 ميلادية وترتبط بها العديد من الأساطير الشعبية حول سر بقائها مخضرة في قلب الكثبان الرملية الجافة.',
-    image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?q=80&w=1200&auto=format&fit=crop&fm=webp',
     googleMapsUrl: 'https://maps.google.com/?q=Tree+of+Life+Bahrain',
     workHours: 'متاحة للزيارة 24 ساعة',
     entryFee: 'مجاني',
@@ -127,7 +128,7 @@ export const INITIAL_LANDMARKS: Landmark[] = [
     descriptionAr: 'أكبر جوامع البحرين وأحد أكبر المساجد في العالم. يتسع لأكثر من 7000 مصلي وتعلوه قبة ضخمة من الألياف الزجاجية مع جولات سياحية تعريفية مجانية بمختلف اللغات.',
     descriptionEn: 'Bahrain’s largest mosque and one of the largest in the world. Features a massive fiberglass dome and offers free guided tours in multiple languages.',
     historicalOverview: 'افتتح عام 1988 وتزين جدرانه خطوط كوفية إسلامية وثريات سواروفسكي وأبواب مصنوعة من خشب الساج الهندي المعتق.',
-    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1200&auto=format&fit=crop&fm=webp',
     googleMapsUrl: 'https://maps.google.com/?q=Al+Fateh+Grand+Mosque',
     workHours: 'الجولات السياحية: من الأحد للخميس (9 صباحاً - 4 عصراً)',
     entryFee: 'مجاني',
@@ -148,7 +149,7 @@ export const INITIAL_LANDMARKS: Landmark[] = [
     descriptionAr: 'مسار تراثي بطول 3.5 كم مدرج لدى اليونسكو يروي حكاية اقتصاد الغوص على اللؤلؤ عبر بيوت التجار التاريخية والدكان والحصن المائي الذي يتم الوصول إليه بقارب بحري.',
     descriptionEn: 'A 3.5km UNESCO World Heritage trail telling the story of Bahrain’s pearling economy through historic merchant houses, visitors center, and a boat ride to Bu Maher Fort.',
     historicalOverview: 'كان حصن بو ماهر المحطة الأولى لاستقبال سفن الغوص للؤلؤ القادمة من هيرات الخليج، ويحتوي مركز زوار متطور يرصد تفاصيل حياة الغواصين.',
-    image: 'https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1512632578888-169bbbc64f33?q=80&w=1200&auto=format&fit=crop&fm=webp',
     googleMapsUrl: 'https://maps.google.com/?q=Bu+Maher+Fort',
     workHours: 'مركز الزوار والرحلات البحرية: 9 صباحاً - 7 مساءً',
     entryFee: 'الرحلة البحرية للقلعة: 1.000 د.ب',
@@ -170,7 +171,7 @@ export const INITIAL_LANDMARKS: Landmark[] = [
     descriptionAr: 'محمية طبيعية وحديقة حيوان فريدة تمتد على مساحة 8 كيلومترات مربعة، تحتضن فصائل نادرة من المها العربي، الغزلان، والطيور المائية والحيوانات المفترسة في بيئة مريحة للعائلات.',
     descriptionEn: 'A natural sanctuary and wildlife park home to rare Arabian Oryx, gazelles, birds, and animals in a family-friendly green environment.',
     historicalOverview: 'تأسست عام 1976 لحماية الكائنات الفطرية المهددة بالانقراض في شبه الجزيرة العربية وتوفر حافلات جولة مكيفة داخل أرجاء المحمية.',
-    image: 'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1534567153574-2b12153a87f0?q=80&w=1200&auto=format&fit=crop&fm=webp',
     googleMapsUrl: 'https://maps.google.com/?q=Al+Areen+Wildlife+Park',
     workHours: 'يومياً: 8 صباحاً - 4 مساءً',
     entryFee: '1.000 د.ب للكبار | 0.500 د.ب للأطفال',
@@ -191,7 +192,7 @@ export const INITIAL_LANDMARKS: Landmark[] = [
     descriptionAr: 'واجهة بحرية حديثة وممتدة على طول 3 كيلومترات من الرمال الذهبية الناعمة، تتميز بمرافق شاطئية عصرية، مطاعم، أنشطة مائية، وجلسات غروب ساحرة.',
     descriptionEn: 'A modern 3km golden sand beach destination featuring beach amenities, watersports, restaurants, and sunset relaxation.',
     historicalOverview: 'تم تطوير الشاطئ مؤخراً ليكون الملاذ الشاطئي الأول لمواطني وزوار المملكة برعايات ترفيهية وخدمات متكاملة.',
-    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop&fm=webp',
     googleMapsUrl: 'https://maps.google.com/?q=Bilaj+Al+Jazayer',
     workHours: 'مفتوح من 8 صباحاً حتى غروب الشمس / 10 مساءً',
     entryFee: 'دخول الشاطئ العمومي: 2.000 د.ب (مستردة كقسيمة للمطاعم)',
@@ -218,7 +219,6 @@ export function LandmarksSection({
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [activeModalLandmark, setActiveModalLandmark] = useState<Landmark | null>(null);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [newComment, setNewComment] = useState({ author: '', text: '' });
 
   // Categories translation
@@ -277,28 +277,6 @@ export function LandmarksSection({
     }
 
     setNewComment({ author: '', text: '' });
-  };
-
-  // Audio Speech Reader
-  const speakText = (text: string) => {
-    if (!('speechSynthesis' in window)) {
-      alert(lang === 'ar' ? 'القراءة الصوتية غير مدعومة في متصفحك' : 'Speech synthesis not supported');
-      return;
-    }
-
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-      return;
-    }
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang === 'ar' ? 'ar-SA' : 'en-US';
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    setIsSpeaking(true);
-    window.speechSynthesis.speak(utterance);
   };
 
   // Filtered List
@@ -416,8 +394,11 @@ export function LandmarksSection({
                 {/* Image & Badges */}
                 <div className="relative h-48 bg-gray-100 dark:bg-slate-900 overflow-hidden">
                   <img
-                    src={lm.image || 'https://images.unsplash.com/photo-1578895210405-907db486c111?q=80&w=800&auto=format&fit=crop'}
+                    src={optimizeImageUrl(lm.image) || 'https://images.unsplash.com/photo-1578895210405-907db486c111?q=80&w=800&auto=format&fit=crop&fm=webp'}
                     alt={lang === 'ar' ? lm.nameAr : (lm.nameEn || lm.nameAr)}
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -508,7 +489,7 @@ export function LandmarksSection({
           <div className="bg-white dark:bg-slate-800 rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-slate-700 shadow-2xl relative space-y-6 p-6">
             {/* Close button */}
             <button
-              onClick={() => { setActiveModalLandmark(null); if ('speechSynthesis' in window) window.speechSynthesis.cancel(); setIsSpeaking(false); }}
+              onClick={() => setActiveModalLandmark(null)}
               className="absolute top-4 left-4 z-10 w-9 h-9 bg-black/60 hover:bg-black text-white rounded-full flex items-center justify-center transition-all"
             >
               <X className="h-5 w-5" />
@@ -517,8 +498,11 @@ export function LandmarksSection({
             {/* Modal Image */}
             <div className="relative h-64 -mx-6 -mt-6 bg-gray-900 rounded-t-3xl overflow-hidden">
               <img
-                src={activeModalLandmark.image || 'https://images.unsplash.com/photo-1578895210405-907db486c111?q=80&w=1200&auto=format&fit=crop'}
+                src={optimizeImageUrl(activeModalLandmark.image) || 'https://images.unsplash.com/photo-1578895210405-907db486c111?q=80&w=1200&auto=format&fit=crop&fm=webp'}
                 alt={activeModalLandmark.nameAr}
+                loading="lazy"
+                decoding="async"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-black/30 to-transparent" />
@@ -537,19 +521,7 @@ export function LandmarksSection({
             </div>
 
             {/* Quick Action Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-amber-50/70 dark:bg-amber-950/30 rounded-2xl border border-amber-200/60 dark:border-amber-900/40">
-              <button
-                onClick={() => speakText(`${activeModalLandmark.nameAr}. ${activeModalLandmark.descriptionAr}. ${activeModalLandmark.historicalOverview || ''}`)}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  isSpeaking
-                    ? 'bg-rose-600 text-white animate-pulse'
-                    : 'bg-amber-600 text-white hover:bg-amber-700 shadow-sm'
-                }`}
-              >
-                {isSpeaking ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-                <span>{isSpeaking ? (lang === 'ar' ? 'إيقاف الصوت' : 'Stop Audio') : (lang === 'ar' ? 'استمع للقصة والتعريف' : 'Listen')}</span>
-              </button>
-
+            <div className="flex flex-wrap items-center justify-end gap-3 p-3 bg-amber-50/70 dark:bg-amber-950/30 rounded-2xl border border-amber-200/60 dark:border-amber-900/40">
               <div className="flex items-center gap-2">
                 {activeModalLandmark.googleMapsUrl && (
                   <a
@@ -881,13 +853,43 @@ export function LandmarksAdminPanel({
               />
             </div>
 
-            <div>
-              <label className="block font-bold text-gray-700 dark:text-slate-300 mb-1">رابط الصورة الرئيسية</label>
-              <input
-                type="url" value={form.image || ''} onChange={e => setForm({ ...form, image: e.target.value })}
-                placeholder="https://..."
-                className="w-full p-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-800 dark:text-slate-200 outline-none"
-              />
+            <div className="space-y-2">
+              <label className="block font-bold text-gray-700 dark:text-slate-300 mb-1">الصورة الرئيسية للمعلم</label>
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  accept="image/webp,image/avif,image/jpeg,image/png,image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const webpData = await convertFileToWebP(file);
+                      setForm({ ...form, image: webpData });
+                    }
+                  }}
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-50 dark:file:bg-amber-950/20 file:text-amber-700 dark:file:text-amber-400 hover:file:bg-amber-100 file:cursor-pointer"
+                />
+                <input
+                  type="url" 
+                  value={form.image || ''} 
+                  onChange={e => setForm({ ...form, image: e.target.value })}
+                  placeholder="أو أدخل رابط مباشر للصورة (URL)..."
+                  className="w-full p-2.5 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-800 dark:text-slate-200 text-xs outline-none"
+                />
+                {form.image && (
+                  <div className="flex items-center gap-3 p-2 bg-amber-50/50 dark:bg-amber-950/20 rounded-xl border border-amber-200/50">
+                    <img 
+                      src={optimizeImageUrl(form.image)} 
+                      alt="Preview" 
+                      loading="lazy" 
+                      decoding="async" 
+                      className="w-16 h-12 rounded-lg object-cover border border-amber-300/40" 
+                    />
+                    <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                      تم تجهيز الصورة بصيغة WebP الحديثة والمحسنة ⚡
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>
@@ -1017,7 +1019,14 @@ export function LandmarksAdminPanel({
               {filtered.map(lm => (
                 <tr key={lm.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-700/40 transition-colors">
                   <td className="p-3 font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
-                    <img src={lm.image} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                    <img 
+                      src={optimizeImageUrl(lm.image)} 
+                      alt="" 
+                      loading="lazy" 
+                      decoding="async" 
+                      referrerPolicy="no-referrer"
+                      className="w-8 h-8 rounded-lg object-cover shrink-0" 
+                    />
                     <div>
                       <span>{lm.nameAr}</span>
                       {lm.isFeatured && <span className="mr-1 text-[10px] text-amber-500 font-bold">⭐</span>}

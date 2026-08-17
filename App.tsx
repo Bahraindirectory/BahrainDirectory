@@ -15,6 +15,7 @@ import { SalesPanel } from './src/components/SalesPanel';
 import { Landmark, LandmarksSection, LandmarksAdminPanel, INITIAL_LANDMARKS } from './src/components/LandmarksSection';
 import { BusinessActivitySection } from './src/components/BusinessActivitySection';
 import { isFirebaseEnabled, fetchCollection, saveDocument, saveCollection, subscribeToCollection, deleteDocument } from './src/lib/firebase';
+import { convertFileToWebP, optimizeImageUrl } from './src/lib/imageOptimizer';
 
 const APP_VERSION = '1.4.3';
 
@@ -473,8 +474,10 @@ function AdCard({ ad, lang }: { ad: Ad; lang: Language }) {
           />
         ) : ad.imageUrl ? (
           <img 
-            src={ad.imageUrl} 
+            src={optimizeImageUrl(ad.imageUrl)} 
             alt={ad.title} 
+            loading="lazy"
+            decoding="async"
             referrerPolicy="no-referrer"
             className={`w-full transition-transform duration-500 group-hover:scale-105 ${ad.autoSize ? 'h-auto object-contain max-h-[400px]' : 'h-full object-cover'}`} 
           />
@@ -697,7 +700,7 @@ function BusinessCard({ b, lang, t, isFav, onToggleFav, onClick }: {
     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer animate-fadeIn group" onClick={onClick}>
       <div className="relative h-44 bg-gray-100 dark:bg-slate-700 overflow-hidden">
         {b.image
-          ? <img src={b.image} alt={lang === 'ar' ? b.nameAr : b.nameEn} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          ? <img src={optimizeImageUrl(b.image)} alt={lang === 'ar' ? b.nameAr : b.nameEn} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           : <div className="w-full h-full flex items-center justify-center text-gray-400"><HomeIcon className="h-16 w-16 opacity-30" /></div>
         }
         {/* Badges */}
@@ -1070,7 +1073,7 @@ function BusinessDetails({ selectedBusiness: b, currentUser, onBackToResults, on
       {/* Hero image */}
       <div className="rounded-2xl overflow-hidden h-56 bg-gray-100 dark:bg-slate-700">
         {b.image
-          ? <img src={b.image} alt={lang === 'ar' ? b.nameAr : b.nameEn} className="w-full h-full object-cover" />
+          ? <img src={optimizeImageUrl(b.image)} alt={lang === 'ar' ? b.nameAr : b.nameEn} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
           : <div className="w-full h-full flex items-center justify-center text-gray-300"><HomeIcon className="h-20 w-20" /></div>}
       </div>
 
@@ -1542,32 +1545,32 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
     {
       nameAr: 'مطعم / كافيه',
       nameEn: 'Restaurant / Cafe',
-      url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80'
+      url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80&fm=webp'
     },
     {
       nameAr: 'صحة وعافية',
       nameEn: 'Health & Wellness',
-      url: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=600&auto=format&fit=crop&q=80'
+      url: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=600&auto=format&fit=crop&q=80&fm=webp'
     },
     {
       nameAr: 'تسوق وموضة',
       nameEn: 'Shopping & Fashion',
-      url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&auto=format&fit=crop&q=80'
+      url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600&auto=format&fit=crop&q=80&fm=webp'
     },
     {
       nameAr: 'برادات وسوبرماركت',
       nameEn: 'Supermarket',
-      url: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=600&auto=format&fit=crop&q=80'
+      url: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=600&auto=format&fit=crop&q=80&fm=webp'
     },
     {
       nameAr: 'سيارات ونقل',
       nameEn: 'Automotive',
-      url: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=600&auto=format&fit=crop&q=80'
+      url: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=600&auto=format&fit=crop&q=80&fm=webp'
     },
     {
       nameAr: 'ترفيه وخدمات',
       nameEn: 'Leisure & Services',
-      url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80'
+      url: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&auto=format&fit=crop&q=80&fm=webp'
     }
   ];
 
@@ -1671,11 +1674,14 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                   title={lang === 'ar' ? 'اضغط لزيارة موقع المنشأة' : 'Click to visit the business website'}
                 >
                   <img 
-                    src={offer.imageUrl} 
+                    src={optimizeImageUrl(offer.imageUrl)} 
                     alt={offer.businessName}
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500';
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&fm=webp';
                     }}
                   />
                   {/* Overlay link banner */}
@@ -1878,18 +1884,32 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                 )}
               </div>
 
-              {/* Offer Image URL */}
+              {/* Offer Image URL & Upload */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-700 dark:text-slate-300">
-                  {lang === 'ar' ? 'رابط صورة العرض' : 'Offer Image URL'}
+                  {lang === 'ar' ? 'صورة العرض' : 'Offer Image'}
                 </label>
-                <input
-                  type="text"
-                  value={offerImageUrl}
-                  onChange={(e) => setOfferImageUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-xs outline-none focus:ring-2 focus:ring-red-400"
-                />
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/webp,image/avif,image/jpeg,image/png,image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const webpData = await convertFileToWebP(file);
+                        setOfferImageUrl(webpData);
+                      }
+                    }}
+                    className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 dark:file:bg-red-950/20 file:text-red-700 dark:file:text-red-400 hover:file:bg-red-100 file:cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={offerImageUrl}
+                    onChange={(e) => setOfferImageUrl(e.target.value)}
+                    placeholder={lang === 'ar' ? 'أو أدخل رابط الصورة المباشر...' : 'Or enter direct image URL...'}
+                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-xs outline-none focus:ring-2 focus:ring-red-400"
+                  />
+                </div>
 
                 {/* Preset Images Helper */}
                 <div className="space-y-1">
@@ -1906,7 +1926,13 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                           offerImageUrl === preset.url ? 'border-red-500 bg-red-500/10' : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/40'
                         }`}
                       >
-                        <img src={preset.url} alt="" className="w-full h-10 object-cover rounded" />
+                        <img 
+                          src={optimizeImageUrl(preset.url)} 
+                          alt="" 
+                          loading="lazy" 
+                          decoding="async" 
+                          className="w-full h-10 object-cover rounded" 
+                        />
                         <span className="text-[9px] font-medium text-gray-500 dark:text-slate-400 text-center truncate w-full">
                           {lang === 'ar' ? preset.nameAr : preset.nameEn}
                         </span>
@@ -2146,18 +2172,32 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                 )}
               </div>
 
-              {/* Offer Image URL */}
+              {/* Offer Image URL & Upload */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-gray-700 dark:text-slate-300">
-                  {lang === 'ar' ? 'رابط صورة العرض' : 'Offer Image URL'}
+                  {lang === 'ar' ? 'صورة العرض' : 'Offer Image'}
                 </label>
-                <input
-                  type="text"
-                  value={editOfferImageUrl}
-                  onChange={(e) => setEditOfferImageUrl(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-xs outline-none focus:ring-2 focus:ring-red-400"
-                />
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/webp,image/avif,image/jpeg,image/png,image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const webpData = await convertFileToWebP(file);
+                        setEditOfferImageUrl(webpData);
+                      }
+                    }}
+                    className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 dark:file:bg-red-950/20 file:text-red-700 dark:file:text-red-400 hover:file:bg-red-100 file:cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={editOfferImageUrl}
+                    onChange={(e) => setEditOfferImageUrl(e.target.value)}
+                    placeholder={lang === 'ar' ? 'أو أدخل رابط الصورة المباشر...' : 'Or enter direct image URL...'}
+                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-xs outline-none focus:ring-2 focus:ring-red-400"
+                  />
+                </div>
 
                 {/* Preset Images Helper */}
                 <div className="space-y-1">
@@ -2174,7 +2214,13 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                           editOfferImageUrl === preset.url ? 'border-red-500 bg-red-500/10' : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/40'
                         }`}
                       >
-                        <img src={preset.url} alt="" className="w-full h-10 object-cover rounded" />
+                        <img 
+                          src={optimizeImageUrl(preset.url)} 
+                          alt="" 
+                          loading="lazy" 
+                          decoding="async" 
+                          className="w-full h-10 object-cover rounded" 
+                        />
                         <span className="text-[9px] font-medium text-gray-500 dark:text-slate-400 text-center truncate w-full">
                           {lang === 'ar' ? preset.nameAr : preset.nameEn}
                         </span>
@@ -3125,8 +3171,8 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
               </label>
               <input
                 type="file"
-                accept="image/*"
-                onChange={(e) => {
+                accept="image/webp,image/avif,image/jpeg,image/png,image/*"
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (file) {
                     const maxMB = siteConfig?.maxAdImageSizeMB ?? 10;
@@ -3141,19 +3187,22 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
                       e.target.value = '';
                       return;
                     }
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                      set('image', reader.result as string);
-                    };
-                    reader.readAsDataURL(file);
+                    try {
+                      const webpData = await convertFileToWebP(file);
+                      set('image', webpData);
+                    } catch {
+                      const reader = new FileReader();
+                      reader.onload = () => set('image', reader.result as string);
+                      reader.readAsDataURL(file);
+                    }
                   }
                 }}
                 className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 dark:file:bg-red-950/20 file:text-red-700 dark:file:text-red-400 hover:file:bg-red-100 file:cursor-pointer"
               />
               <p className="text-[10px] text-gray-400 dark:text-slate-400">
                 {lang === 'ar' 
-                  ? 'سيتم حفظ الصورة محلياً في المتصفح وتأكيد وضعها في مجلد images/' 
-                  : 'Image will be saved locally and referenced under images/ directory.'}
+                  ? '⚡ يتم تحويل الصورة تلقائياً لصيغة WebP الحديثة فائقة السرعة والخفة' 
+                  : '⚡ Image is automatically converted to modern, ultra-fast WebP format'}
               </p>
             </div>
 
@@ -3163,7 +3212,7 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
               </label>
               <input 
                 className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400"
-                placeholder="https://example.com/logo.png"
+                placeholder="https://example.com/logo.webp"
                 value={form.image || ''} 
                 onChange={e => set('image', e.target.value)} 
               />
@@ -3173,8 +3222,10 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
           {form.image && (
             <div className="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-150 dark:border-slate-700">
               <img 
-                src={form.image} 
+                src={optimizeImageUrl(form.image)} 
                 alt="Business Preview" 
+                loading="lazy"
+                decoding="async"
                 className="h-14 w-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/placeholder/400/300';
@@ -3183,10 +3234,10 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
               <div className="text-right">
                 <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1 justify-start">
                   <FileCheck className="h-3.5 w-3.5" />
-                  {lang === 'ar' ? 'تم تجهيز الصورة وتعيين المسار في مجلد images/' : 'Image processed and referenced under images/'}
+                  {lang === 'ar' ? 'تم تجهيز وضغط الصورة بصيغة WebP بنجاح ⚡' : 'Image converted and optimized to WebP successfully ⚡'}
                 </span>
                 <span className="text-[10px] text-gray-400 dark:text-slate-500 font-mono block max-w-xs truncate">
-                  {form.image.startsWith('data:') ? `/images/uploaded_${Date.now().toString().slice(-6)}.png` : form.image}
+                  {form.image.startsWith('data:image/webp') ? 'data:image/webp (محسنة)' : form.image}
                 </span>
               </div>
             </div>
@@ -3293,8 +3344,8 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
                   </label>
                   <input
                     type="file"
-                    accept={form.adPageMediaType === 'video' ? 'video/*' : 'image/*'}
-                    onChange={(e) => {
+                    accept={form.adPageMediaType === 'video' ? 'video/*' : 'image/webp,image/avif,image/jpeg,image/png,image/*'}
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
                         const isVideo = form.adPageMediaType === 'video';
@@ -3310,6 +3361,15 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
                           e.target.value = '';
                           return;
                         }
+                        if (!isVideo) {
+                          try {
+                            const webpData = await convertFileToWebP(file);
+                            set('adPageMediaUrl', webpData);
+                            return;
+                          } catch {
+                            // fallback
+                          }
+                        }
                         const reader = new FileReader();
                         reader.onload = () => {
                           set('adPageMediaUrl', reader.result as string);
@@ -3321,8 +3381,8 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
                   />
                   <p className="text-[10px] text-gray-400 dark:text-slate-400">
                     {lang === 'ar' 
-                      ? `سيتم حفظ الملف وتأكيد وضعه في مجلد ${form.adPageMediaType === 'video' ? 'videos/' : 'images/'}`
-                      : `File will be saved and referenced under ${form.adPageMediaType === 'video' ? 'videos/' : 'images/'} directory.`}
+                      ? (form.adPageMediaType === 'video' ? 'يتم حفظ الفيديو وتشغيله بكفاءة' : '⚡ يتم تحويل وضغط صورة الإعلان لصيغة WebP الحديثة')
+                      : (form.adPageMediaType === 'video' ? 'Video saved efficiently' : '⚡ Ad image automatically converted to WebP')}
                   </p>
                 </div>
 
@@ -3331,7 +3391,7 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
                     {lang === 'ar' ? '🔗 أو أدخل الرابط المباشر (Media URL)' : '🔗 Or Enter Direct Media URL'}
                   </label>
                   <input className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400"
-                    placeholder={form.adPageMediaType === 'video' ? 'https://example.com/ad.mp4' : 'https://example.com/ad.png'}
+                    placeholder={form.adPageMediaType === 'video' ? 'https://example.com/ad.mp4' : 'https://example.com/ad.webp'}
                     value={form.adPageMediaUrl || ''} onChange={e => set('adPageMediaUrl', e.target.value)} />
                 </div>
               </div>
@@ -3341,9 +3401,16 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
                   {form.adPageMediaType === 'video' ? (
                     <video src={form.adPageMediaUrl} className="h-14 w-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700" controls muted />
                   ) : (
-                    <img src={form.adPageMediaUrl} className="h-14 w-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700" onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/placeholder/400/300';
-                    }} />
+                    <img 
+                      src={optimizeImageUrl(form.adPageMediaUrl)} 
+                      alt="Ad Preview" 
+                      loading="lazy"
+                      decoding="async"
+                      className="h-14 w-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700" 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/placeholder/400/300';
+                      }} 
+                    />
                   )}
                   <div className="text-right">
                     <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1 justify-start">
@@ -4462,8 +4529,8 @@ function AdsPanel({ ads, setAds, categories = [], businesses = [], lang, t, site
                   </label>
                   <input
                     type="file"
-                    accept={mediaType === 'video' ? 'video/*' : 'image/*'}
-                    onChange={(e) => {
+                    accept={mediaType === 'video' ? 'video/*' : 'image/webp,image/avif,image/jpeg,image/png,image/*'}
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
                         const isVideo = mediaType === 'video';
@@ -4478,6 +4545,15 @@ function AdsPanel({ ads, setAds, categories = [], businesses = [], lang, t, site
                           );
                           e.target.value = '';
                           return;
+                        }
+                        if (!isVideo) {
+                          try {
+                            const webpData = await convertFileToWebP(file);
+                            setImageUrl(webpData);
+                            return;
+                          } catch {
+                            // fallback
+                          }
                         }
                         const reader = new FileReader();
                         reader.onload = () => {
@@ -4494,8 +4570,8 @@ function AdsPanel({ ads, setAds, categories = [], businesses = [], lang, t, site
                   />
                   <p className="text-[10px] text-gray-400 dark:text-slate-400">
                     {lang === 'ar' 
-                      ? `📌 الحد الأقصى للحجم المسموح به: ${mediaType === 'video' ? (siteConfig?.maxAdVideoSizeMB ?? 50) : (siteConfig?.maxAdImageSizeMB ?? 10)} ميجابايت` 
-                      : `📌 Max allowed size: ${mediaType === 'video' ? (siteConfig?.maxAdVideoSizeMB ?? 50) : (siteConfig?.maxAdImageSizeMB ?? 10)} MB`}
+                      ? `📌 الحد الأقصى للحجم: ${mediaType === 'video' ? (siteConfig?.maxAdVideoSizeMB ?? 50) : (siteConfig?.maxAdImageSizeMB ?? 10)} ميجابايت (تحويل تلقائي لـ WebP للصور)` 
+                      : `📌 Max allowed size: ${mediaType === 'video' ? (siteConfig?.maxAdVideoSizeMB ?? 50) : (siteConfig?.maxAdImageSizeMB ?? 10)} MB (Auto-WebP for images)`}
                   </p>
                 </div>
 
@@ -4507,7 +4583,7 @@ function AdsPanel({ ads, setAds, categories = [], businesses = [], lang, t, site
                   </label>
                   <input 
                     className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400"
-                    placeholder={mediaType === 'image' ? 'https://example.com/ad.png' : 'https://example.com/ad.mp4'}
+                    placeholder={mediaType === 'image' ? 'https://example.com/ad.webp' : 'https://example.com/ad.mp4'}
                     value={mediaType === 'image' ? imageUrl : videoUrl}
                     onChange={e => {
                       if (mediaType === 'image') {
@@ -4524,8 +4600,10 @@ function AdsPanel({ ads, setAds, categories = [], businesses = [], lang, t, site
                 <div className="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-150 dark:border-slate-700">
                   {mediaType === 'image' ? (
                     <img 
-                      src={imageUrl} 
+                      src={optimizeImageUrl(imageUrl)} 
                       alt="Ad Preview" 
+                      loading="lazy"
+                      decoding="async"
                       className="h-14 w-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700"
                     />
                   ) : (
@@ -4606,7 +4684,7 @@ function AdsPanel({ ads, setAds, categories = [], businesses = [], lang, t, site
               <div className="flex items-center gap-4">
                 <div className="w-16 h-12 rounded-xl overflow-hidden bg-gray-100 dark:bg-slate-700 shrink-0">
                   {ad.mediaType === 'image' && ad.imageUrl
-                    ? <img src={ad.imageUrl} alt={ad.title} className="w-full h-full object-cover" />
+                    ? <img src={optimizeImageUrl(ad.imageUrl)} alt={ad.title} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                     : <Video className="h-6 w-6 text-gray-400 m-3" />}
                 </div>
                 <div className="min-w-0">
@@ -5541,15 +5619,35 @@ function SiteSettingsPanel({ siteConfig, setSiteConfig, lang, t }: any) {
 
             <div>
               <label className="block text-xs font-bold text-gray-600 dark:text-slate-300 mb-1">
-                {lang === 'ar' ? 'رابط الشعار (اختياري)' : 'Logo URL (Optional)'}
+                {lang === 'ar' ? 'شعار الموقع (اختياري - رفع أو رابط)' : 'Site Logo (Optional - Upload or URL)'}
               </label>
-              <input
-                type="text"
-                value={form.logoUrl}
-                onChange={e => setForm({ ...form, logoUrl: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-xs bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400 ltr text-left"
-                placeholder="https://example.com/logo.png"
-              />
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  accept="image/webp,image/avif,image/jpeg,image/png,image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      try {
+                        const webpData = await convertFileToWebP(file);
+                        setForm({ ...form, logoUrl: webpData });
+                      } catch {
+                        const reader = new FileReader();
+                        reader.onload = () => setForm({ ...form, logoUrl: reader.result as string });
+                        reader.readAsDataURL(file);
+                      }
+                    }
+                  }}
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 dark:file:bg-red-950/20 file:text-red-700 dark:file:text-red-400 hover:file:bg-red-100 file:cursor-pointer"
+                />
+                <input
+                  type="text"
+                  value={form.logoUrl}
+                  onChange={e => setForm({ ...form, logoUrl: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-xs bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400 ltr text-left"
+                  placeholder="https://example.com/logo.webp"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -6490,7 +6588,7 @@ const AppContent: React.FC = () => {
             setIsOpenNow(false);
           }}>
             {siteConfig.logoUrl
-              ? <img src={siteConfig.logoUrl} alt="Logo" className="h-8 md:h-10 w-auto rounded-lg" />
+              ? <img src={optimizeImageUrl(siteConfig.logoUrl)} alt="Logo" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-8 md:h-10 w-auto rounded-lg" />
               : <div className="w-8 h-8 md:w-10 md:h-10 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">B</div>}
             <h1 className="text-lg md:text-xl font-bold hidden sm:block text-gray-800 dark:text-slate-100 truncate max-w-[150px] md:max-w-none">
               {lang === 'ar' ? siteConfig.titleAr : siteConfig.titleEn}
@@ -6792,7 +6890,7 @@ const AppContent: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {siteConfig.logoUrl
-              ? <img src={siteConfig.logoUrl} alt="Logo" className="h-6 w-auto rounded" />
+              ? <img src={optimizeImageUrl(siteConfig.logoUrl)} alt="Logo" loading="lazy" decoding="async" referrerPolicy="no-referrer" className="h-6 w-auto rounded" />
               : <div className="w-6 h-6 bg-red-600 rounded flex items-center justify-center text-white font-bold text-xs shadow-sm">B</div>}
             <span className="text-sm font-semibold text-gray-700 dark:text-slate-300">
               {lang === 'ar' ? siteConfig.titleAr : siteConfig.titleEn}

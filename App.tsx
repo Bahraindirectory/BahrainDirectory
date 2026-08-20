@@ -56,6 +56,8 @@ interface Business {
   image?: string;
   mediaType?: 'image' | 'video';
   videoUrl?: string;
+  pdfUrl?: string;
+  pdfName?: string;
   hasAdPage?: boolean;
   adPageContent?: string;
   adPageMediaUrl?: string;
@@ -715,6 +717,7 @@ function BusinessCard({ b, lang, t, isFav, onToggleFav, onClick }: {
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {b.isFeatured && <span className="bg-yellow-400 text-yellow-900 text-[10px] font-bold px-2 py-0.5 rounded-full">{t.featured}</span>}
           {isNew && <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{t.newOpening}</span>}
+          {b.pdfUrl && <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">📄 {lang === 'ar' ? 'منيو / PDF' : 'PDF'}</span>}
         </div>
         <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
           {b.openTime && <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${open ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}`}>{open ? t.openNow : 'مغلق'}</span>}
@@ -1078,6 +1081,7 @@ function BusinessDetails({ selectedBusiness: b, currentUser, onBackToResults, on
   const [reviewComment, setReviewComment] = useState('');
   const [replyText, setReplyText] = useState<Record<string, string>>({});
   const [showReplyBox, setShowReplyBox] = useState<Record<string, boolean>>({});
+  const [viewingPdf, setViewingPdf] = useState(false);
 
   const avg = b.ratingCount ? ((b.ratingSum || 0) / b.ratingCount).toFixed(1) : '—';
   const isOpen = checkIsOpen(b);
@@ -1101,11 +1105,23 @@ function BusinessDetails({ selectedBusiness: b, currentUser, onBackToResults, on
         <ArrowLeft className="h-4 w-4" /> {t.backToIndex}
       </button>
 
-      {/* Hero image */}
-      <div className="rounded-2xl overflow-hidden h-56 bg-gray-100 dark:bg-slate-700">
-        {b.image
-          ? <img src={optimizeImageUrl(b.image)} alt={lang === 'ar' ? b.nameAr : b.nameEn} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
-          : <div className="w-full h-full flex items-center justify-center text-gray-300"><HomeIcon className="h-20 w-20" /></div>}
+      {/* Hero media (Video or Image) */}
+      <div className="rounded-2xl overflow-hidden h-60 bg-gray-100 dark:bg-slate-700 relative">
+        {b.mediaType === 'video' && b.videoUrl ? (
+          <video 
+            src={b.videoUrl} 
+            controls 
+            autoPlay 
+            muted 
+            loop 
+            playsInline
+            className="w-full h-full object-cover" 
+          />
+        ) : b.image ? (
+          <img src={optimizeImageUrl(b.image)} alt={lang === 'ar' ? b.nameAr : b.nameEn} loading="lazy" decoding="async" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-300"><HomeIcon className="h-20 w-20" /></div>
+        )}
       </div>
 
       {/* Info card */}
@@ -1189,6 +1205,125 @@ function BusinessDetails({ selectedBusiness: b, currentUser, onBackToResults, on
           )}
         </div>
       </div>
+
+      {/* PDF Document Section */}
+      {b.pdfUrl && (
+        <div className="bg-gradient-to-br from-red-50/90 via-white to-orange-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-2xl p-4 sm:p-5 shadow-sm border border-red-200/80 dark:border-slate-700 space-y-3 animate-fadeIn">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-md shadow-red-600/20 shrink-0">
+                <FileText className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-extrabold text-sm text-gray-900 dark:text-slate-100 flex items-center gap-2">
+                  <span>{b.pdfName || (lang === 'ar' ? 'ملف المنشأة / المنيو / الكتالوج (PDF)' : 'Business Document / Menu / Catalog (PDF)')}</span>
+                  <span className="px-2 py-0.5 bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-300 font-extrabold text-[10px] rounded-full">PDF</span>
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                  {lang === 'ar' ? 'يمكنك قراءة واستعراض الملف مباشرة أو تحميله' : 'Read and browse the document directly or download it'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewingPdf(true)}
+                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
+              >
+                <Eye className="h-4 w-4" />
+                <span>{lang === 'ar' ? 'قراءة واستعراض الملف' : 'Read Document'}</span>
+              </button>
+              <a
+                href={b.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                download={b.pdfName ? `${b.pdfName}.pdf` : 'document.pdf'}
+                className="flex items-center justify-center gap-1.5 p-2 px-3 bg-white dark:bg-slate-700 text-gray-700 dark:text-slate-200 border border-gray-200 dark:border-slate-600 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-slate-600 transition-colors shadow-sm"
+                title={lang === 'ar' ? 'فتح في نافذة جديدة / تحميل' : 'Open in new window / Download'}
+              >
+                <ExternalLink className="h-4 w-4" />
+                <span className="hidden sm:inline">{lang === 'ar' ? 'نافذة جديدة' : 'New Tab'}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── PDF VIEWER MODAL ─── */}
+      {viewingPdf && b.pdfUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div 
+            dir={lang === 'ar' ? 'rtl' : 'ltr'}
+            className="bg-white dark:bg-slate-800 rounded-3xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col border border-gray-200 dark:border-slate-700 h-[92vh]"
+          >
+            {/* Modal Header */}
+            <div className="px-5 py-3.5 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-gray-50 dark:bg-slate-850">
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0">
+                  <FileText className="h-4 w-4" />
+                </div>
+                <div className="truncate">
+                  <h3 className="font-bold text-sm text-gray-900 dark:text-slate-100 truncate">
+                    {b.pdfName || (lang === 'ar' ? `ملف ${b.nameAr}` : `${b.nameEn} Document`)}
+                  </h3>
+                  <p className="text-[10px] text-gray-400 dark:text-slate-500 truncate">
+                    {lang === 'ar' ? b.nameAr : b.nameEn} · {b.subCategory}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={b.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={b.pdfName ? `${b.pdfName}.pdf` : 'document.pdf'}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-colors"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{lang === 'ar' ? 'تحميل' : 'Download'}</span>
+                </a>
+                <a
+                  href={b.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 rounded-xl text-xs font-bold transition-colors"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{lang === 'ar' ? 'فتح في نافذة كاملة' : 'Full Window'}</span>
+                </a>
+                <button
+                  onClick={() => setViewingPdf(false)}
+                  className="p-1.5 hover:bg-gray-200 dark:hover:bg-slate-700 rounded-full text-gray-400 dark:text-slate-400 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Iframe Document Body */}
+            <div className="flex-grow bg-slate-100 dark:bg-slate-900 relative">
+              <iframe
+                src={b.pdfUrl}
+                className="w-full h-full border-0"
+                title="PDF Document Viewer"
+              />
+            </div>
+
+            {/* Footer */}
+            <div className="px-4 py-2.5 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 text-[11px] text-gray-500 dark:text-slate-400 flex items-center justify-between">
+              <span>{lang === 'ar' ? 'إذا لم يظهر الملف داخل الإطار تلقائياً، اضغط على زر "فتح في نافذة كاملة" بالأعلى.' : 'If the PDF does not load automatically, click "Full Window" above.'}</span>
+              <button
+                onClick={() => setViewingPdf(false)}
+                className="px-3.5 py-1 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
+              >
+                {lang === 'ar' ? 'إغلاق' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Business Activity & Services Section */}
       {(b.activities || b.adPageContent) && (
@@ -1301,6 +1436,152 @@ function Favorites({ businesses, favorites, currentUser, toggleFavorite, onSelec
             ))}
           </div>
         )}
+    </div>
+  );
+}
+
+// ─── SEARCHABLE BUSINESS PICKER ─────────────────────────────────────────────
+
+function SearchableBusinessPicker({
+  businesses,
+  selectedBizId,
+  onSelectBiz,
+  lang
+}: {
+  businesses: Business[];
+  selectedBizId: string;
+  onSelectBiz: (biz: Business | null) => void;
+  lang: string;
+}) {
+  const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const selectedBiz = useMemo(() => businesses.find(b => b.id === selectedBizId), [businesses, selectedBizId]);
+
+  const filtered = useMemo(() => {
+    if (!query.trim()) return businesses.slice(0, 35);
+    const q = query.toLowerCase().trim();
+    return businesses.filter(b => {
+      const nameAr = (b.nameAr || '').toLowerCase();
+      const nameEn = (b.nameEn || '').toLowerCase();
+      const cat = (b.category || '').toLowerCase();
+      const sub = (b.subCategory || '').toLowerCase();
+      const area = `${b.areaAr || ''} ${b.areaEn || ''}`.toLowerCase();
+      const block = (b.block || '').toLowerCase();
+      return nameAr.includes(q) || nameEn.includes(q) || cat.includes(q) || sub.includes(q) || area.includes(q) || block.includes(q);
+    }).slice(0, 50);
+  }, [businesses, query]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      {selectedBiz && !isOpen ? (
+        <div className="flex items-center justify-between p-2.5 bg-red-50/70 dark:bg-slate-900 border border-red-200 dark:border-slate-700 rounded-xl">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-red-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
+              ✓
+            </div>
+            <div className="truncate">
+              <span className="font-bold text-xs text-gray-900 dark:text-slate-100 block truncate">
+                {lang === 'ar' ? selectedBiz.nameAr : selectedBiz.nameEn}
+              </span>
+              <span className="text-[10px] text-gray-500 dark:text-slate-400 block truncate">
+                {selectedBiz.subCategory} · {lang === 'ar' ? selectedBiz.areaAr : selectedBiz.areaEn} · {lang === 'ar' ? 'مجمع' : 'Block'} {selectedBiz.block}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => { setIsOpen(true); setQuery(''); }}
+              className="px-2.5 py-1 text-[11px] bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg font-bold text-gray-700 dark:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+            >
+              {lang === 'ar' ? 'تغيير' : 'Change'}
+            </button>
+            <button
+              type="button"
+              onClick={() => onSelectBiz(null)}
+              className="p-1 text-gray-400 hover:text-red-600 rounded-lg transition-colors"
+              title={lang === 'ar' ? 'إلغاء التحديد' : 'Clear'}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          <div className="relative">
+            <Search className={`absolute ${lang === 'ar' ? 'right-3' : 'left-3'} top-3 h-4 w-4 text-gray-400 pointer-events-none`} />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
+              onFocus={() => setIsOpen(true)}
+              placeholder={lang === 'ar' ? '🔍 اكتب اسم المنشأة، المنطقة أو التصنيف للبحث...' : '🔍 Type business name, area or category to search...'}
+              className={`w-full ${lang === 'ar' ? 'pr-9 pl-8' : 'pl-9 pr-8'} py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-xs outline-none focus:ring-2 focus:ring-red-400`}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className={`absolute ${lang === 'ar' ? 'left-2.5' : 'right-2.5'} top-2.5 text-gray-400 hover:text-gray-600 p-0.5`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {isOpen && (
+            <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-xl p-1.5 space-y-1">
+              <div className="px-2 py-1 text-[10px] font-bold text-gray-400 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center">
+                <span>{lang === 'ar' ? `نتائج البحث (${filtered.length})` : `Search Results (${filtered.length})`}</span>
+                <span className="text-[9px] text-gray-400 font-normal">{lang === 'ar' ? 'اضغط للاختيار' : 'Click to select'}</span>
+              </div>
+              {filtered.length === 0 ? (
+                <div className="p-3 text-center text-xs text-gray-400">
+                  {lang === 'ar' ? 'لا توجد منشأة مطابقة للبحث' : 'No matching businesses found'}
+                </div>
+              ) : (
+                filtered.map((b) => {
+                  const isChosen = b.id === selectedBizId;
+                  return (
+                    <div
+                      key={b.id}
+                      onClick={() => {
+                        onSelectBiz(b);
+                        setIsOpen(false);
+                      }}
+                      className={`p-2.5 rounded-xl cursor-pointer transition-all flex items-center justify-between text-xs ${
+                        isChosen
+                          ? 'bg-red-600 text-white font-bold'
+                          : 'hover:bg-red-50 dark:hover:bg-slate-700 text-gray-800 dark:text-slate-200'
+                      }`}
+                    >
+                      <div className="truncate">
+                        <p className="font-bold truncate">{lang === 'ar' ? b.nameAr : b.nameEn}</p>
+                        <p className={`text-[10px] truncate ${isChosen ? 'text-red-100' : 'text-gray-500 dark:text-slate-400'}`}>
+                          {b.subCategory} · {lang === 'ar' ? b.areaAr : b.areaEn} · {lang === 'ar' ? 'مجمع' : 'Block'} {b.block}
+                        </p>
+                      </div>
+                      {isChosen && <span className="text-xs font-bold">✓</span>}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1848,13 +2129,13 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                 </div>
 
                 {useExistingBiz ? (
-                  <select
-                    value={selectedBizId}
-                    onChange={(e) => {
-                      setSelectedBizId(e.target.value);
-                      const b = businesses.find(item => item.id === e.target.value);
+                  <SearchableBusinessPicker
+                    businesses={businesses}
+                    selectedBizId={selectedBizId}
+                    lang={lang}
+                    onSelectBiz={(b) => {
                       if (b) {
-                        // Pre-fill link from business contacts if available
+                        setSelectedBizId(b.id);
                         if (b.instagram) {
                           setOfferLink(`https://instagram.com/${b.instagram}`);
                         } else if (b.googleMapsUrl) {
@@ -1862,17 +2143,12 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                         } else {
                           setOfferLink('');
                         }
+                      } else {
+                        setSelectedBizId('');
+                        setOfferLink('');
                       }
                     }}
-                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-xs outline-none focus:ring-2 focus:ring-red-400"
-                  >
-                    <option value="">{lang === 'ar' ? '-- اختر المنشأة من القائمة --' : '-- Select Business --'}</option>
-                    {businesses.map(b => (
-                      <option key={b.id} value={b.id}>
-                        {lang === 'ar' ? `${b.nameAr} (${b.subCategory})` : `${b.nameEn} (${b.subCategory})`}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 ) : (
                   <input
                     type="text"
@@ -2137,12 +2413,13 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                 </div>
 
                 {editUseExistingBiz ? (
-                  <select
-                    value={editSelectedBizId}
-                    onChange={(e) => {
-                      setEditSelectedBizId(e.target.value);
-                      const b = businesses.find(item => item.id === e.target.value);
+                  <SearchableBusinessPicker
+                    businesses={businesses}
+                    selectedBizId={editSelectedBizId}
+                    lang={lang}
+                    onSelectBiz={(b) => {
                       if (b) {
+                        setEditSelectedBizId(b.id);
                         if (b.instagram) {
                           setEditOfferLink(`https://instagram.com/${b.instagram}`);
                         } else if (b.googleMapsUrl) {
@@ -2150,17 +2427,12 @@ function Bazaar({ bazaarOffers, setBazaarOffers, businesses, currentUser, onBack
                         } else {
                           setEditOfferLink('');
                         }
+                      } else {
+                        setEditSelectedBizId('');
+                        setEditOfferLink('');
                       }
                     }}
-                    className="w-full px-3 py-2.5 border border-gray-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 text-xs outline-none focus:ring-2 focus:ring-red-400"
-                  >
-                    <option value="">{lang === 'ar' ? '-- اختر المنشأة من القائمة --' : '-- Select Business --'}</option>
-                    {businesses.map(b => (
-                      <option key={b.id} value={b.id}>
-                        {lang === 'ar' ? `${b.nameAr} (${b.subCategory})` : `${b.nameEn} (${b.subCategory})`}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 ) : (
                   <input
                     type="text"
@@ -3194,7 +3466,8 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
   const [form, setForm] = useState<Partial<Business>>(initial || {
     nameAr: '', nameEn: '', category: 'restaurants', subCategory: '',
     areaAr: '', areaEn: '', block: '', phone: '', googleMapsUrl: '',
-    image: '', isPriority: false, isFeatured: false, hasAdPage: false
+    image: '', mediaType: 'image', videoUrl: '', pdfUrl: '', pdfName: '',
+    isPriority: false, isFeatured: false, hasAdPage: false
   });
   const set = (key: keyof Business, val: any) => setForm(p => ({ ...p, [key]: val }));
   const cat = categories.find((c: Category) => c.id === form.category);
@@ -3208,7 +3481,7 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700 space-y-3 animate-fadeIn">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-gray-200 dark:border-slate-700 space-y-4 animate-fadeIn">
       <h3 className="font-bold text-gray-800 dark:text-slate-100">{initial ? t.edit : t.addBusiness}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {[
@@ -3226,87 +3499,287 @@ function BusinessForm({ initial, categories, siteConfig, lang, t, onSave, onCanc
           </div>
         ))}
 
-        {/* Business Logo/Image with local file upload option */}
+        {/* Business Primary Media (Image or Video) */}
         <div className="md:col-span-2 bg-gray-50/50 dark:bg-slate-900/30 p-4 rounded-2xl border border-gray-150 dark:border-slate-700/60 space-y-3">
-          <label className="block text-xs font-bold text-gray-700 dark:text-slate-300">
-            {lang === 'ar' ? 'شعار / صورة المنشأة' : 'Business Logo / Cover Image'}
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-bold text-gray-700 dark:text-slate-300">
+              {lang === 'ar' ? 'وسائط الواجهة للمنشأة (صورة أو فيديو)' : 'Business Profile Media (Image or Video)'}
+            </label>
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-1 text-xs font-semibold cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="bizMediaType"
+                  checked={form.mediaType !== 'video'} 
+                  onChange={() => set('mediaType', 'image')}
+                  className="accent-red-600"
+                />
+                <span>{lang === 'ar' ? 'صورة' : 'Image'}</span>
+              </label>
+              <label className="flex items-center gap-1 text-xs font-semibold cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="bizMediaType"
+                  checked={form.mediaType === 'video'} 
+                  onChange={() => set('mediaType', 'video')}
+                  className="accent-red-600"
+                />
+                <span>{lang === 'ar' ? 'فيديو' : 'Video'}</span>
+              </label>
+            </div>
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-            <div className="space-y-2">
+          {form.mediaType === 'video' ? (
+            /* Video Upload / Direct URL */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-red-600 dark:text-red-400">
+                  {lang === 'ar' ? '📁 رفع فيديو من الكمبيوتر' : '📁 Upload Video from Computer'}
+                </label>
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const maxMB = siteConfig?.maxAdVideoSizeMB ?? 50;
+                      const maxBytes = maxMB * 1024 * 1024;
+                      if (file.size > maxBytes) {
+                        const fileMB = (file.size / (1024 * 1024)).toFixed(1);
+                        alert(
+                          lang === 'ar'
+                            ? `⚠️ عذراً، حجم الفيديو (${fileMB} ميجابايت) يتجاوز الحد الأقصى (${maxMB} ميجابايت).`
+                            : `⚠️ Sorry, video size (${fileMB} MB) exceeds limit (${maxMB} MB).`
+                        );
+                        e.target.value = '';
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = () => set('videoUrl', reader.result as string);
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 dark:file:bg-red-950/20 file:text-red-700 dark:file:text-red-400 hover:file:bg-red-100 file:cursor-pointer"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-gray-500 dark:text-slate-400">
+                  {lang === 'ar' ? '🔗 أو أدخل رابط الفيديو المباشر (Video URL)' : '🔗 Or Enter Direct Video URL'}
+                </label>
+                <input 
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400"
+                  placeholder="https://example.com/video.mp4"
+                  value={form.videoUrl || ''} 
+                  onChange={e => set('videoUrl', e.target.value)} 
+                />
+              </div>
+
+              {form.videoUrl && (
+                <div className="md:col-span-2 flex items-center gap-3 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-150 dark:border-slate-700">
+                  <video src={form.videoUrl} controls muted className="h-16 w-24 object-cover rounded-lg border border-gray-200 dark:border-slate-700" />
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1 justify-start">
+                      <FileCheck className="h-3.5 w-3.5" />
+                      {lang === 'ar' ? 'تم تجهيز الفيديو بنجاح 🎬' : 'Video ready 🎬'}
+                    </span>
+                    <button 
+                      type="button" 
+                      onClick={() => set('videoUrl', '')} 
+                      className="text-[10px] text-red-500 hover:underline mt-1"
+                    >
+                      {lang === 'ar' ? 'حذف الفيديو' : 'Remove Video'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Image Upload / Direct URL */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-red-600 dark:text-red-400">
+                  {lang === 'ar' ? '📁 رفع صورة من الكمبيوتر (مجلد images)' : '📁 Upload Image from Computer (images/)'}
+                </label>
+                <input
+                  type="file"
+                  accept="image/webp,image/avif,image/jpeg,image/png,image/*"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const maxMB = siteConfig?.maxAdImageSizeMB ?? 10;
+                      const maxBytes = maxMB * 1024 * 1024;
+                      if (file.size > maxBytes) {
+                        const fileMB = (file.size / (1024 * 1024)).toFixed(1);
+                        alert(
+                          lang === 'ar'
+                            ? `⚠️ عذراً، حجم الصورة (${fileMB} ميجابايت) يتجاوز الحد الأقصى المسموح به من قبل المدير (${maxMB} ميجابايت).`
+                            : `⚠️ Sorry, image size (${fileMB} MB) exceeds maximum allowed limit (${maxMB} MB).`
+                        );
+                        e.target.value = '';
+                        return;
+                      }
+                      try {
+                        const webpData = await convertFileToWebP(file);
+                        set('image', webpData);
+                      } catch {
+                        const reader = new FileReader();
+                        reader.onload = () => set('image', reader.result as string);
+                        reader.readAsDataURL(file);
+                      }
+                    }
+                  }}
+                  className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 dark:file:bg-red-950/20 file:text-red-700 dark:file:text-red-400 hover:file:bg-red-100 file:cursor-pointer"
+                />
+                <p className="text-[10px] text-gray-400 dark:text-slate-400">
+                  {lang === 'ar' 
+                    ? '⚡ يتم تحويل الصورة تلقائياً لصيغة WebP الحديثة فائقة السرعة والخفة' 
+                    : '⚡ Image is automatically converted to modern, ultra-fast WebP format'}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-gray-500 dark:text-slate-400">
+                  {lang === 'ar' ? '🔗 أو أدخل رابط الصورة المباشر (Image URL)' : '🔗 Or Enter Direct Image URL'}
+                </label>
+                <input 
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400"
+                  placeholder="https://example.com/logo.webp"
+                  value={form.image || ''} 
+                  onChange={e => set('image', e.target.value)} 
+                />
+              </div>
+
+              {form.image && (
+                <div className="md:col-span-2 flex items-center gap-3 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-150 dark:border-slate-700">
+                  <img 
+                    src={optimizeImageUrl(form.image)} 
+                    alt="Business Preview" 
+                    loading="lazy"
+                    decoding="async"
+                    className="h-14 w-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/placeholder/400/300';
+                    }}
+                  />
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1 justify-start">
+                      <FileCheck className="h-3.5 w-3.5" />
+                      {lang === 'ar' ? 'تم تجهيز وضغط الصورة بصيغة WebP بنجاح ⚡' : 'Image converted and optimized to WebP successfully ⚡'}
+                    </span>
+                    <span className="text-[10px] text-gray-400 dark:text-slate-500 font-mono block max-w-xs truncate">
+                      {form.image.startsWith('data:image/webp') ? 'data:image/webp (محسنة)' : form.image}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ─── PDF DOCUMENT UPLOAD & MANAGEMENT SECTION ─── */}
+        <div className="md:col-span-2 bg-gradient-to-r from-red-50/70 to-orange-50/50 dark:from-slate-900/50 dark:to-slate-900/30 p-4 rounded-2xl border border-red-200/80 dark:border-slate-700 space-y-3">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-red-600" />
+            <label className="block text-xs font-bold text-gray-800 dark:text-slate-200">
+              {lang === 'ar' ? '📄 ملف PDF للمنشأة (منيو / كتالوج / بروشور / مستندات)' : '📄 Business PDF Document (Menu / Catalog / Brochure)'}
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-start">
+            <div className="space-y-1.5">
               <label className="block text-[10px] font-bold text-red-600 dark:text-red-400">
-                {lang === 'ar' ? '📁 رفع صورة من الكمبيوتر (مجلد images)' : '📁 Upload Image from Computer (images/)'}
+                {lang === 'ar' ? '📁 رفع ملف PDF من الجهاز' : '📁 Upload PDF from Computer'}
               </label>
               <input
                 type="file"
-                accept="image/webp,image/avif,image/jpeg,image/png,image/*"
-                onChange={async (e) => {
+                accept="application/pdf"
+                onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (file) {
-                    const maxMB = siteConfig?.maxAdImageSizeMB ?? 10;
-                    const maxBytes = maxMB * 1024 * 1024;
+                    const maxBytes = 25 * 1024 * 1024; // 25MB
                     if (file.size > maxBytes) {
-                      const fileMB = (file.size / (1024 * 1024)).toFixed(1);
-                      alert(
-                        lang === 'ar'
-                          ? `⚠️ عذراً، حجم الصورة (${fileMB} ميجابايت) يتجاوز الحد الأقصى المسموح به من قبل المدير (${maxMB} ميجابايت).`
-                          : `⚠️ Sorry, image size (${fileMB} MB) exceeds maximum allowed limit (${maxMB} MB).`
-                      );
+                      alert(lang === 'ar' ? '⚠️ حجم ملف PDF يتجاوز 25 ميجابايت' : '⚠️ PDF file exceeds 25 MB');
                       e.target.value = '';
                       return;
                     }
-                    try {
-                      const webpData = await convertFileToWebP(file);
-                      set('image', webpData);
-                    } catch {
-                      const reader = new FileReader();
-                      reader.onload = () => set('image', reader.result as string);
-                      reader.readAsDataURL(file);
+                    if (!form.pdfName) {
+                      set('pdfName', file.name.replace(/\.[^/.]+$/, ''));
                     }
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      set('pdfUrl', reader.result as string);
+                    };
+                    reader.readAsDataURL(file);
                   }
                 }}
-                className="w-full text-xs text-gray-500 file:mr-4 file:py-1.5 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-50 dark:file:bg-red-950/20 file:text-red-700 dark:file:text-red-400 hover:file:bg-red-100 file:cursor-pointer"
+                className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
               />
-              <p className="text-[10px] text-gray-400 dark:text-slate-400">
-                {lang === 'ar' 
-                  ? '⚡ يتم تحويل الصورة تلقائياً لصيغة WebP الحديثة فائقة السرعة والخفة' 
-                  : '⚡ Image is automatically converted to modern, ultra-fast WebP format'}
-              </p>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-[10px] font-bold text-gray-500 dark:text-slate-400">
-                {lang === 'ar' ? '🔗 أو أدخل رابط الصورة المباشر (Image URL)' : '🔗 Or Enter Direct Image URL'}
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-gray-600 dark:text-slate-400">
+                {lang === 'ar' ? '🔗 أو رابط ملف PDF المباشر' : '🔗 Or Direct PDF URL'}
               </label>
-              <input 
-                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-sm bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400"
-                placeholder="https://example.com/logo.webp"
-                value={form.image || ''} 
-                onChange={e => set('image', e.target.value)} 
+              <input
+                type="text"
+                value={form.pdfUrl || ''}
+                onChange={(e) => set('pdfUrl', e.target.value)}
+                placeholder="https://example.com/menu.pdf"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-xs bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[10px] font-bold text-gray-600 dark:text-slate-400">
+                {lang === 'ar' ? '📝 اسم أو وصف ملف الـ PDF' : '📝 PDF Document Name / Title'}
+              </label>
+              <input
+                type="text"
+                value={form.pdfName || ''}
+                onChange={(e) => set('pdfName', e.target.value)}
+                placeholder={lang === 'ar' ? 'مثال: منيو قائمة الطعام 2026' : 'e.g. Menu & Price Catalog 2026'}
+                className="w-full px-3 py-2 border border-gray-200 dark:border-slate-600 rounded-xl text-xs bg-white dark:bg-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-red-400"
               />
             </div>
           </div>
 
-          {form.image && (
-            <div className="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-gray-150 dark:border-slate-700">
-              <img 
-                src={optimizeImageUrl(form.image)} 
-                alt="Business Preview" 
-                loading="lazy"
-                decoding="async"
-                className="h-14 w-20 object-cover rounded-lg border border-gray-200 dark:border-slate-700"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/placeholder/400/300';
-                }}
-              />
-              <div className="text-right">
-                <span className="text-[10px] font-bold text-emerald-600 block flex items-center gap-1 justify-start">
-                  <FileCheck className="h-3.5 w-3.5" />
-                  {lang === 'ar' ? 'تم تجهيز وضغط الصورة بصيغة WebP بنجاح ⚡' : 'Image converted and optimized to WebP successfully ⚡'}
-                </span>
-                <span className="text-[10px] text-gray-400 dark:text-slate-500 font-mono block max-w-xs truncate">
-                  {form.image.startsWith('data:image/webp') ? 'data:image/webp (محسنة)' : form.image}
-                </span>
+          {form.pdfUrl && (
+            <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-red-200 dark:border-slate-700 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 truncate">
+                <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-950/50 text-red-600 flex items-center justify-center font-bold text-xs shrink-0">
+                  PDF
+                </div>
+                <div className="truncate">
+                  <span className="text-xs font-bold text-gray-900 dark:text-slate-100 block truncate">
+                    {form.pdfName || (lang === 'ar' ? 'ملف PDF للمنشأة' : 'Business PDF Document')}
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-bold block">
+                    ✓ {lang === 'ar' ? 'تم إرفاق الملف بنجاح، ويمكن للزوار قراءته مباشرة' : 'Document attached and ready to read'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <a
+                  href={form.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-xs font-bold rounded-lg hover:bg-red-100 transition-colors flex items-center gap-1"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  <span>{lang === 'ar' ? 'معاينة وقراءة' : 'Preview & Read'}</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    set('pdfUrl', '');
+                    set('pdfName', '');
+                  }}
+                  className="px-2.5 py-1.5 text-xs text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  {lang === 'ar' ? 'حذف الملف' : 'Remove'}
+                </button>
               </div>
             </div>
           )}

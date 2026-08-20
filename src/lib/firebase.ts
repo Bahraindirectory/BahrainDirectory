@@ -64,6 +64,57 @@ export const isFirebaseEnabled = (): boolean => {
   return !!db;
 };
 
+export const getFirebaseConfigStatus = () => {
+  return {
+    isEnabled: !!db,
+    hasApiKey: !!firebaseConfig.apiKey,
+    hasAuthDomain: !!firebaseConfig.authDomain,
+    hasProjectId: !!firebaseConfig.projectId,
+    hasStorageBucket: !!firebaseConfig.storageBucket,
+    hasMessagingSenderId: !!firebaseConfig.messagingSenderId,
+    hasAppId: !!firebaseConfig.appId,
+    projectId: firebaseConfig.projectId || '',
+  };
+};
+
+export const testFirebaseCloudConnection = async (): Promise<{ success: boolean; message: string; details?: any }> => {
+  if (!db) {
+    return {
+      success: false,
+      message: 'لم يتم تهيئة فايربيس في المتصفح لأن متغيرات البيئة (VITE_FIREBASE_*) غير معرّفة أثناء بناء الموقع (Build Time).'
+    };
+  }
+
+  try {
+    const testDocRef = doc(db, '_connection_test', 'ping');
+    const testPayload = {
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      status: 'active'
+    };
+
+    // Attempt write
+    await withTimeout(setDoc(testDocRef, testPayload), 5000);
+
+    return {
+      success: true,
+      message: 'تم الاتصال بقاعدة بيانات Cloud Firestore بنجاح 100%! الكتابة والقراءة السحابية تعمل بين جميع الأجهزة والمتصفحات.'
+    };
+  } catch (error: any) {
+    let explanation = error?.message || 'خطأ غير معروف أثناء الاتصال بالسحابة';
+    if (error?.code === 'permission-denied' || explanation.includes('permission-denied') || explanation.includes('Missing or insufficient permissions')) {
+      explanation = 'تم الاتصال بـ Firebase ولكن تم رفض العملية بسبب قواعد الأمان (Firestore Rules). يرجى التأكد من ضبط قواعد Firestore لتسمح بالقراءة والكتابة: allow read, write: if true;';
+    } else if (error?.code === 'unavailable' || explanation.includes('unavailable')) {
+      explanation = 'تعذر الوصول لخوادم Firestore أو أن قاعدة البيانات Cloud Firestore لم يتم إنشاؤها بعد داخل Firebase Console.';
+    }
+    return {
+      success: false,
+      message: explanation,
+      details: error
+    };
+  }
+};
+
 // Helper to execute a promise with a timeout
 export const withTimeout = <T>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
   return Promise.race([

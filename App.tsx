@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SalesPanel } from './src/components/SalesPanel';
 import { Landmark, LandmarksSection, LandmarksAdminPanel, INITIAL_LANDMARKS } from './src/components/LandmarksSection';
 import { BusinessActivitySection } from './src/components/BusinessActivitySection';
-import { isFirebaseEnabled, fetchCollection, saveDocument, saveCollection, subscribeToCollection, deleteDocument } from './src/lib/firebase';
+import { isFirebaseEnabled, getFirebaseConfigStatus, testFirebaseCloudConnection, fetchCollection, saveDocument, saveCollection, subscribeToCollection, deleteDocument } from './src/lib/firebase';
 import { convertFileToWebP, optimizeImageUrl } from './src/lib/imageOptimizer';
 
 const APP_VERSION = '1.4.3';
@@ -5329,6 +5329,26 @@ function parseCSV(text: string): string[][] {
 function DataManagementWidget({ lang, t, businesses, setBusinesses, categories, setCategories, ads, setAds, members, setMembers, siteConfig, setSiteConfig }: any) {
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [cloudTesting, setCloudTesting] = useState(false);
+  const [cloudTestResult, setCloudTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const fbStatus = getFirebaseConfigStatus();
+
+  const handleTestCloudPing = async () => {
+    setCloudTesting(true);
+    setCloudTestResult(null);
+    try {
+      const result = await testFirebaseCloudConnection();
+      setCloudTestResult(result);
+    } catch (e: any) {
+      setCloudTestResult({
+        success: false,
+        message: e?.message || 'فشل الاختبار'
+      });
+    } finally {
+      setCloudTesting(false);
+    }
+  };
 
   // 1. Export Backup
   const exportSystemBackup = () => {
@@ -5611,8 +5631,88 @@ function DataManagementWidget({ lang, t, businesses, setBusinesses, categories, 
       <div className="flex items-center gap-2 border-b dark:border-slate-700 pb-3">
         <Shield className="h-6 w-6 text-red-600 animate-pulse" />
         <h3 className="font-bold text-lg text-gray-800 dark:text-slate-100">
-          {lang === 'ar' ? 'إدارة وأمان بيانات النظام' : 'System Data Management & Security'}
+          {lang === 'ar' ? 'إدارة وأمان بيانات النظام والمزامنة السحابية' : 'System Data Management & Cloud Sync'}
         </h3>
+      </div>
+
+      {/* ─── CLOUD SYNC & FIREBASE DIAGNOSTIC CARD ─── */}
+      <div className="p-5 rounded-2xl border bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-900/60 dark:to-slate-900/40 border-gray-200 dark:border-slate-700 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold shrink-0 ${fbStatus.isEnabled ? 'bg-emerald-600 shadow-md shadow-emerald-500/20' : 'bg-amber-500 shadow-md shadow-amber-500/20'}`}>
+              {fbStatus.isEnabled ? '☁️' : '⚠️'}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="font-bold text-sm text-gray-900 dark:text-slate-100">
+                  {lang === 'ar' ? 'حالة الربط السحابي (Firebase / Cloud Sync)' : 'Cloud Sync Status (Firebase)'}
+                </h4>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${fbStatus.isEnabled ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'}`}>
+                  {fbStatus.isEnabled 
+                    ? (lang === 'ar' ? '🟢 متصل بالسحابة (Firebase نشط)' : '🟢 Cloud Active') 
+                    : (lang === 'ar' ? '⚠️ غير مربوط (يعمل محلياً LocalStorage)' : '⚠️ Local Storage Only')}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">
+                {fbStatus.isEnabled
+                  ? (lang === 'ar' 
+                      ? `تم ضبط المفاتيح بنجاح للمشروع (${fbStatus.projectId || 'Firebase'}). يتم مزامنة الإضافات فورياً بين جميع الأجهزة.`
+                      : `Configured for project (${fbStatus.projectId}). Real-time multi-device sync is enabled.`)
+                  : (lang === 'ar'
+                      ? 'التطبيق يعمل في وضع التخزين المحلي فقط. أي منشأة تضيفها لن تظهر على الأجهزة الأخرى حتى يتم ضبط مفاتيح VITE_FIREBASE_* على منصة الاستضافة (Render).'
+                      : 'App is running in local storage fallback mode. New records will only appear on this browser until VITE_FIREBASE_* variables are set in your hosting platform.')}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTestCloudPing}
+            disabled={cloudTesting}
+            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white rounded-xl text-xs font-bold transition-colors shrink-0 flex items-center justify-center gap-1.5"
+          >
+            {cloudTesting ? (
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                {lang === 'ar' ? 'جارِ فحص السحابة...' : 'Testing...'}
+              </span>
+            ) : (
+              <span>{lang === 'ar' ? '🧪 اختبار الاتصال السحابي الفوري' : '🧪 Test Cloud Connection'}</span>
+            )}
+          </button>
+        </div>
+
+        {/* Test Result Box */}
+        {cloudTestResult && (
+          <div className={`p-3.5 rounded-xl border text-xs leading-relaxed animate-fadeIn ${cloudTestResult.success ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'}`}>
+            <span className="font-bold block mb-1">
+              {cloudTestResult.success ? (lang === 'ar' ? '✅ نتيجة الفحص: الاتصال سليم 100%' : '✅ Status: Fully Operational') : (lang === 'ar' ? '❌ نتيجة الفحص: هناك مشكلة في الربط' : '❌ Status: Sync Error')}
+            </span>
+            <p>{cloudTestResult.message}</p>
+          </div>
+        )}
+
+        {/* Missing Config Details */}
+        {!fbStatus.isEnabled && (
+          <div className="p-3.5 bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-xl space-y-2 text-xs text-amber-900 dark:text-amber-300">
+            <span className="font-bold block text-xs">
+              {lang === 'ar' ? '📋 المتغيرات المطلوبة في لوحة تحكم Render (Environment Variables):' : '📋 Required Environment Variables in Render Dashboard:'}
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 font-mono text-[11px] bg-white/70 dark:bg-slate-900/60 p-2.5 rounded-lg border border-amber-200/60 dark:border-slate-700">
+              <div>VITE_FIREBASE_API_KEY</div>
+              <div>VITE_FIREBASE_AUTH_DOMAIN</div>
+              <div>VITE_FIREBASE_PROJECT_ID</div>
+              <div>VITE_FIREBASE_STORAGE_BUCKET</div>
+              <div>VITE_FIREBASE_MESSAGING_SENDER_ID</div>
+              <div>VITE_FIREBASE_APP_ID</div>
+            </div>
+            <p className="text-[11px] leading-relaxed">
+              {lang === 'ar'
+                ? '⚠️ هام: بعد إضافة هذه المتغيرات في Render، اضغط على زر Manual Deploy -> Clear build cache & deploy لكي يتم دمج المتغيرات في الكود أثناء البناء.'
+                : '⚠️ Note: After adding variables in Render, perform Manual Deploy -> Clear build cache & deploy to recompile Vite.'}
+            </p>
+          </div>
+        )}
       </div>
 
       {successMsg && <div className="p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-xl text-sm font-medium">✓ {successMsg}</div>}

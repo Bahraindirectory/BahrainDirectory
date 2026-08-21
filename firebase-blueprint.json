@@ -1,0 +1,87 @@
+{
+  "entities": {
+    "Business": {
+      "title": "Business",
+      "description": "Business directory listing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "nameAr": { "type": "string", "maxLength": 200 },
+        "nameEn": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "maxLength": 100 },
+        "subCategory": { "type": "string", "maxLength": 100 },
+        "areaAr": { "type": "string", "maxLength": 100 },
+        "areaEn": { "type": "string", "maxLength": 100 },
+        "block": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["nameAr", "category"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Directory main category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "nameAr": { "type": "string", "maxLength": 150 },
+        "nameEn": { "type": "string", "maxLength": 150 },
+        "icon": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "nameAr"]
+    },
+    "Ad": {
+      "title": "Advertisement",
+      "description": "Promotional banner advertisement",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "mediaType": { "type": "string", "enum": ["image", "video"] }
+      },
+      "required": ["id"]
+    },
+    "BazaarOffer": {
+      "title": "Bazaar Offer",
+      "description": "Special bazaar discount or deal",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "businessName": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "title"]
+    },
+    "Landmark": {
+      "title": "Landmark",
+      "description": "Prominent city landmark",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "nameAr": { "type": "string", "maxLength": 200 },
+        "nameEn": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["id", "nameAr"]
+    }
+  },
+  "firestore": {
+    "/businesses/{businessId}": {
+      "schema": "Business",
+      "description": "Directory businesses"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Directory categories"
+    },
+    "/ads/{adId}": {
+      "schema": "Ad",
+      "description": "Advertisements"
+    },
+    "/bazaarOffers/{offerId}": {
+      "schema": "BazaarOffer",
+      "description": "Bazaar discount offers"
+    },
+    "/landmarks/{landmarkId}": {
+      "schema": "Landmark",
+      "description": "City landmarks and notable locations"
+    }
+  }
+}

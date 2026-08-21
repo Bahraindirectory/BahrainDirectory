@@ -1,9 +1,94 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Since the app uses a custom local auth system (members list), we allow public read and write access
+
+    // Helper functions for hardened security
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    // Default Deny Fallback
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
+    }
+
+    // ─── 1. BUSINESSES DIRECTORY ───
+    match /businesses/{businessId} {
+      allow read: if true;
+      allow create, update: if isValidId(businessId)
+        && incoming().nameAr is string && incoming().nameAr.size() <= 300
+        && incoming().category is string && incoming().category.size() <= 150;
+      allow delete: if isValidId(businessId);
+    }
+
+    // ─── 2. CATEGORIES ───
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update: if isValidId(categoryId)
+        && incoming().nameAr is string && incoming().nameAr.size() <= 200;
+      allow delete: if isValidId(categoryId);
+    }
+
+    // ─── 3. ADS & PROMOTIONS ───
+    match /ads/{adId} {
+      allow read: if true;
+      allow create, update: if isValidId(adId);
+      allow delete: if isValidId(adId);
+    }
+
+    // ─── 4. BAZAAR OFFERS ───
+    match /bazaarOffers/{offerId} {
+      allow read: if true;
+      allow create, update: if isValidId(offerId)
+        && incoming().title is string && incoming().title.size() <= 300;
+      allow delete: if isValidId(offerId);
+    }
+
+    // ─── 5. LANDMARKS ───
+    match /landmarks/{landmarkId} {
+      allow read: if true;
+      allow create, update: if isValidId(landmarkId)
+        && incoming().nameAr is string && incoming().nameAr.size() <= 300;
+      allow delete: if isValidId(landmarkId);
+    }
+
+    // ─── 6. SITE CONFIGURATION ───
+    match /siteConfig/{configId} {
+      allow read: if true;
+      allow create, update: if isValidId(configId);
+      allow delete: if isValidId(configId);
+    }
+
+    // ─── 7. SALES PRODUCTS & INVOICES ───
+    match /salesProducts/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(productId);
+    }
+
+    match /salesInvoices/{invoiceId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(invoiceId);
+    }
+
+    // ─── 8. MEMBERS & TEAM MANAGEMENT ───
+    match /members/{memberId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(memberId);
+    }
+
+    // ─── 9. TRASH / DELETED BUSINESSES ───
+    match /deletedBusinesses/{delId} {
+      allow read: if true;
+      allow create, update, delete: if isValidId(delId);
+    }
+
+    // ─── 10. DIAGNOSTIC PING & HEALTH CHECK ───
+    match /_connection_test/{testId} {
+      allow read, write: if isValidId(testId);
     }
   }
 }
